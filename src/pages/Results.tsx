@@ -271,9 +271,11 @@ const GOVERNMENT_SCHEMES = [
     ],
     officialUrl: null,
   },
-] as const;
+];
 
-function getSchemesForSpecialist(specialistKey: string): typeof GOVERNMENT_SCHEMES {
+type GovernmentScheme = (typeof GOVERNMENT_SCHEMES)[number];
+
+function getSchemesForSpecialist(specialistKey: string): GovernmentScheme[] {
   return GOVERNMENT_SCHEMES.filter((scheme) =>
     scheme.coveredSpecialists.includes(specialistKey)
   );
