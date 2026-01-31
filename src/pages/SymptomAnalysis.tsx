@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, Suspense, lazy } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Mic,
@@ -12,12 +12,19 @@ import {
   ChevronDown,
   ChevronUp,
   Stethoscope,
+  Box,
+  LayoutGrid,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import GlowButton from "@/components/ui/GlowButton";
 import BodyDiagram from "@/components/symptoms/BodyDiagram";
 import EmergencyOverlay, { checkForEmergency } from "@/components/symptoms/EmergencyOverlay";
+
+// Lazy load the 3D body diagram for performance
+const BodyDiagram3D = lazy(() => import("@/components/symptoms/BodyDiagram3D"));
+
+type SymptomType = "pain" | "swelling" | "numbness" | "rash" | "normal";
 
 const quickSymptoms = [
   "Headache",
@@ -59,6 +66,9 @@ const SymptomAnalysis = () => {
   const [symptoms, setSymptoms] = useState("");
   const [selectedQuickSymptoms, setSelectedQuickSymptoms] = useState<string[]>([]);
   const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
+  // 3D body diagram: Map of partId -> symptomType
+  const [selectedBodyParts3D, setSelectedBodyParts3D] = useState<Record<string, SymptomType>>({});
+  const [use3DView, setUse3DView] = useState(true);
   const [age, setAge] = useState(30);
   const [gender, setGender] = useState<string>("");
   const [showMedicalHistory, setShowMedicalHistory] = useState(false);
@@ -95,6 +105,18 @@ const SymptomAnalysis = () => {
     );
   };
 
+  // 3D body part click handler
+  const handleBodyPart3DClick = (partId: string, symptomType: SymptomType) => {
+    setSelectedBodyParts3D((prev) => {
+      if (prev[partId]) {
+        // Remove if already selected
+        const { [partId]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [partId]: symptomType };
+    });
+  };
+
   const addMedication = () => {
     if (newMedication.trim()) {
       setMedications((prev) => [...prev, newMedication.trim()]);
@@ -106,15 +128,28 @@ const SymptomAnalysis = () => {
     setMedications((prev) => prev.filter((m) => m !== med));
   };
 
+  // Combine body parts from both 2D and 3D views
+  const getAllBodyParts = () => {
+    if (use3DView) {
+      return Object.entries(selectedBodyParts3D).map(([partId, symptomType]) => ({
+        part: partId,
+        symptomType,
+      }));
+    }
+    return selectedBodyParts.map((part) => ({ part, symptomType: "pain" as SymptomType }));
+  };
+
   const handleAnalyze = async () => {
     setIsAnalyzing(true);
     // Simulate analysis delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
+    const bodyPartsData = getAllBodyParts();
     navigate("/results", {
       state: {
         symptoms,
         quickSymptoms: selectedQuickSymptoms,
-        bodyParts: selectedBodyParts,
+        bodyParts: bodyPartsData.map((bp) => bp.part),
+        bodyPartsDetailed: bodyPartsData,
         age,
         gender,
         medications,
@@ -341,32 +376,95 @@ const SymptomAnalysis = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}
             >
-              <h3 className="text-lg font-semibold text-foreground mb-4 text-center">
-                Click Affected Body Parts
-              </h3>
-              <BodyDiagram
-                selectedParts={selectedBodyParts}
-                onPartClick={toggleBodyPart}
-              />
-              {selectedBodyParts.length > 0 && (
-                <motion.div
-                  className="mt-6 p-4 bg-primary/10 rounded-xl"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <p className="text-sm text-muted-foreground mb-2">Selected areas:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedBodyParts.map((part) => (
-                      <span
-                        key={part}
-                        className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm capitalize"
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">
+                  Click Affected Body Parts
+                </h3>
+                <div className="flex items-center gap-2 p-1 bg-muted/50 rounded-lg">
+                  <button
+                    onClick={() => setUse3DView(false)}
+                    className={`p-2 rounded-md transition-all ${
+                      !use3DView
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="2D View"
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setUse3DView(true)}
+                    className={`p-2 rounded-md transition-all ${
+                      use3DView
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="3D View"
+                  >
+                    <Box className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              
+              <AnimatePresence mode="wait">
+                {use3DView ? (
+                  <motion.div
+                    key="3d"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Suspense
+                      fallback={
+                        <div className="h-[500px] flex items-center justify-center bg-muted/30 rounded-xl">
+                          <div className="text-center">
+                            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                            <p className="text-sm text-muted-foreground">Loading 3D Model...</p>
+                          </div>
+                        </div>
+                      }
+                    >
+                      <BodyDiagram3D
+                        selectedParts={selectedBodyParts3D}
+                        onPartClick={handleBodyPart3DClick}
+                      />
+                    </Suspense>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="2d"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <BodyDiagram
+                      selectedParts={selectedBodyParts}
+                      onPartClick={toggleBodyPart}
+                    />
+                    {selectedBodyParts.length > 0 && (
+                      <motion.div
+                        className="mt-6 p-4 bg-primary/10 rounded-xl"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
                       >
-                        {part.replace(/([A-Z])/g, " $1").trim()}
-                      </span>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+                        <p className="text-sm text-muted-foreground mb-2">Selected areas:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedBodyParts.map((part) => (
+                            <span
+                              key={part}
+                              className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm capitalize"
+                            >
+                              {part.replace(/([A-Z])/g, " $1").trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </div>
 
@@ -380,7 +478,7 @@ const SymptomAnalysis = () => {
             <GlowButton
               size="lg"
               onClick={handleAnalyze}
-              disabled={!symptoms && selectedQuickSymptoms.length === 0}
+              disabled={!symptoms && selectedQuickSymptoms.length === 0 && Object.keys(selectedBodyParts3D).length === 0 && selectedBodyParts.length === 0}
             >
               {isAnalyzing ? (
                 <motion.span
