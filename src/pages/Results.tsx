@@ -25,6 +25,11 @@ import {
   ExternalLink,
   MessageCircle,
   Crown,
+  AlertTriangle,
+  User,
+  Calendar,
+  Loader2,
+  Zap,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
@@ -40,6 +45,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getFirstMeasuresFromLLM, getFallbackFirstMeasures } from "@/services/firstMeasuresApi";
+import { analyzeSymptoms, type AIAnalysisResponse, type BodyPartDetail } from "@/services/aiAnalysisApi";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -528,6 +534,38 @@ function getRecommendationFromSymptoms(
   };
 }
 
+// Map specialty names to icons
+function getSpecialtyIcon(specialty: string): LucideIcon {
+  const specialtyLower = specialty.toLowerCase();
+  if (specialtyLower.includes("cardio") || specialtyLower.includes("heart")) return Heart;
+  if (specialtyLower.includes("neuro") || specialtyLower.includes("brain")) return Brain;
+  if (specialtyLower.includes("pulmo") || specialtyLower.includes("lung")) return Wind;
+  if (specialtyLower.includes("ortho") || specialtyLower.includes("bone")) return Bone;
+  if (specialtyLower.includes("gastro") || specialtyLower.includes("stomach")) return Pill;
+  if (specialtyLower.includes("ophthal") || specialtyLower.includes("eye")) return Eye;
+  if (specialtyLower.includes("ent") || specialtyLower.includes("ear")) return Ear;
+  if (specialtyLower.includes("derma") || specialtyLower.includes("skin")) return Sparkles;
+  if (specialtyLower.includes("psych") || specialtyLower.includes("mental")) return Smile;
+  if (specialtyLower.includes("endocrin")) return Scale;
+  if (specialtyLower.includes("urolog")) return Droplets;
+  if (specialtyLower.includes("rheumat")) return Bone;
+  if (specialtyLower.includes("sleep")) return Moon;
+  if (specialtyLower.includes("infectious")) return FlaskConical;
+  if (specialtyLower.includes("sport")) return Dumbbell;
+  if (specialtyLower.includes("pain")) return Activity;
+  return Stethoscope;
+}
+
+interface LocationState {
+  symptoms?: string;
+  quickSymptoms?: string[];
+  bodyParts?: string[];
+  bodyPartsDetailed?: BodyPartDetail[];
+  age?: number;
+  gender?: string;
+  medications?: string[];
+}
+
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -536,12 +574,57 @@ const Results = () => {
   const [firstMeasuresLoading, setFirstMeasuresLoading] = useState(true);
   const [firstMeasuresFromAI, setFirstMeasuresFromAI] = useState(false);
   const [talkToNurseOpen, setTalkToNurseOpen] = useState(false);
+  
+  // AI Analysis state
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(true);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [useAI, setUseAI] = useState(true);
 
-  const state = location.state as { symptoms?: string; quickSymptoms?: string[] } | null;
+  const state = location.state as LocationState | null;
   const symptomsText = state?.symptoms ?? "";
   const quickSymptomsList = state?.quickSymptoms ?? [];
-  const results = getRecommendationFromSymptoms(symptomsText, quickSymptomsList);
+  const bodyPartsDetailed = state?.bodyPartsDetailed ?? [];
+  const age = state?.age ?? 30;
+  const gender = state?.gender ?? "";
+  const medications = state?.medications ?? [];
+  
+  // Fallback rule-based results
+  const ruleBasedResults = getRecommendationFromSymptoms(symptomsText, quickSymptomsList);
 
+  // AI Analysis effect
+  useEffect(() => {
+    let cancelled = false;
+    setAiLoading(true);
+    setAiError(null);
+
+    analyzeSymptoms({
+      symptoms: symptomsText,
+      quickSymptoms: quickSymptomsList,
+      bodyParts: bodyPartsDetailed,
+      age,
+      gender,
+      medications,
+    })
+      .then((response) => {
+        if (cancelled) return;
+        setAiAnalysis(response);
+        setAiLoading(false);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error("AI analysis error:", error);
+        setAiError(error.message || "AI analysis failed");
+        setAiLoading(false);
+        setUseAI(false); // Fall back to rule-based
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [symptomsText, quickSymptomsList, bodyPartsDetailed, age, gender, medications]);
+
+  // First measures effect
   useEffect(() => {
     let cancelled = false;
     setFirstMeasuresLoading(true);
@@ -558,6 +641,34 @@ const Results = () => {
     });
     return () => { cancelled = true; };
   }, [symptomsText, quickSymptomsList]);
+
+  // Compute display results based on AI or rule-based
+  const results = useAI && aiAnalysis 
+    ? {
+        primaryRecommendation: {
+          icon: getSpecialtyIcon(aiAnalysis.primaryRecommendation.specialty),
+          specialty: aiAnalysis.primaryRecommendation.specialty,
+          matchPercentage: aiAnalysis.primaryRecommendation.matchPercentage,
+          description: aiAnalysis.primaryRecommendation.reasoning,
+        },
+        primarySpecialtyKey: aiAnalysis.primaryRecommendation.specialty,
+        alternatives: aiAnalysis.alternatives.map((alt) => ({
+          icon: getSpecialtyIcon(alt.specialty),
+          specialty: alt.specialty,
+          matchPercentage: alt.matchPercentage,
+          description: alt.reasoning,
+        })),
+        reasoning: [
+          aiAnalysis.primaryRecommendation.reasoning,
+          ...(aiAnalysis.ageSpecificConsiderations ? [aiAnalysis.ageSpecificConsiderations] : []),
+          ...(aiAnalysis.genderSpecificConsiderations ? [aiAnalysis.genderSpecificConsiderations] : []),
+        ],
+        urgency: aiAnalysis.primaryRecommendation.urgencyLevel === "emergency" 
+          ? "high" as const 
+          : aiAnalysis.primaryRecommendation.urgencyLevel as "low" | "moderate" | "high",
+        urgencyPercentage: aiAnalysis.urgencyPercentage,
+      }
+    : ruleBasedResults;
 
   const handleGeneratePDF = async () => {
     setIsGeneratingPDF(true);
@@ -580,23 +691,115 @@ const Results = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <motion.div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/30 text-success text-sm font-medium mb-6"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <Activity className="w-4 h-4" />
-              Analysis Complete
-            </motion.div>
+            {aiLoading ? (
+              <motion.div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium mb-6"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                <Loader2 className="w-4 h-4 animate-spin" />
+                AI Analyzing Symptoms...
+              </motion.div>
+            ) : (
+              <motion.div
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 border border-success/30 text-success text-sm font-medium mb-6"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                {useAI && aiAnalysis ? (
+                  <>
+                    <Zap className="w-4 h-4" />
+                    AI Analysis Complete
+                  </>
+                ) : (
+                  <>
+                    <Activity className="w-4 h-4" />
+                    Analysis Complete
+                  </>
+                )}
+              </motion.div>
+            )}
             <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
               <span className="headline-gradient">Your Results</span>
             </h1>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Based on your symptoms, here are our specialist recommendations
+              {useAI && aiAnalysis 
+                ? `Personalized analysis for ${age}-year-old ${gender || "patient"}`
+                : "Based on your symptoms, here are our specialist recommendations"
+              }
             </p>
           </motion.div>
 
+          {/* Patient Context Summary (AI mode) */}
+          {useAI && aiAnalysis && (
+            <motion.div
+              className="mb-8 flex flex-wrap justify-center gap-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="glass-panel px-4 py-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-primary" />
+                <span className="text-sm text-muted-foreground">Age: <span className="text-foreground font-medium">{age}</span></span>
+              </div>
+              {gender && (
+                <div className="glass-panel px-4 py-2 flex items-center gap-2">
+                  <User className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Gender: <span className="text-foreground font-medium">{gender}</span></span>
+                </div>
+              )}
+              {medications.length > 0 && (
+                <div className="glass-panel px-4 py-2 flex items-center gap-2">
+                  <Pill className="w-4 h-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Medications: <span className="text-foreground font-medium">{medications.length}</span></span>
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {/* Emergency Flags */}
+          {useAI && aiAnalysis && aiAnalysis.emergencyFlags.length > 0 && (
+            <motion.div
+              className="mb-8 p-4 rounded-xl bg-destructive/10 border border-destructive/30"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.15 }}
+            >
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-6 h-6 text-destructive flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-destructive mb-2">Emergency Symptoms Detected</h3>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-destructive/90">
+                    {aiAnalysis.emergencyFlags.map((flag, index) => (
+                      <li key={index}>{flag}</li>
+                    ))}
+                  </ul>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    If symptoms are severe, call emergency services immediately.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* AI Loading Skeleton */}
+          {aiLoading && (
+            <div className="space-y-6 mb-8">
+              <div className="glass-panel p-8 animate-pulse">
+                <div className="flex flex-col md:flex-row items-center gap-8">
+                  <div className="w-32 h-32 rounded-full bg-muted" />
+                  <div className="flex-1 space-y-3">
+                    <div className="h-6 bg-muted rounded w-48" />
+                    <div className="h-4 bg-muted rounded w-full" />
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!aiLoading && (
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left: Urgency + Primary Recommendation */}
             <div className="lg:col-span-2 space-y-6">
@@ -732,6 +935,72 @@ const Results = () => {
                   </motion.div>
                 );
               })()}
+
+              {/* AI Differential Diagnosis */}
+              {useAI && aiAnalysis && aiAnalysis.differentialDiagnosis.length > 0 && (
+                <motion.div
+                  className="glass-panel p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.72 }}
+                >
+                  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <FlaskConical className="w-5 h-5 text-primary" />
+                    Differential Diagnosis
+                    <span className="text-xs font-normal text-primary/80">(AI-powered)</span>
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Based on your symptoms, these are potential conditions that your healthcare provider may consider:
+                  </p>
+                  <div className="grid gap-2">
+                    {aiAnalysis.differentialDiagnosis.map((diagnosis, index) => (
+                      <motion.div
+                        key={index}
+                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.72 + index * 0.1 }}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold text-primary">{index + 1}</span>
+                        </div>
+                        <span className="text-sm text-foreground">{diagnosis}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* AI Next Steps */}
+              {useAI && aiAnalysis && aiAnalysis.nextSteps.length > 0 && (
+                <motion.div
+                  className="glass-panel p-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.74 }}
+                >
+                  <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-primary" />
+                    Recommended Next Steps
+                  </h3>
+                  <div className="space-y-3">
+                    {aiAnalysis.nextSteps.map((step, index) => (
+                      <motion.div
+                        key={index}
+                        className="flex items-start gap-3"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.74 + index * 0.1 }}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-bold text-success">✓</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{step}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
 
               {/* First measures (LLM or fallback) */}
               <motion.div
@@ -872,6 +1141,7 @@ const Results = () => {
               </motion.div>
             </div>
           </div>
+          )}
         </div>
       </main>
 
