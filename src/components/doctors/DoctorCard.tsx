@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Star,
   MapPin,
@@ -7,7 +7,7 @@ import {
   Phone,
   Calendar,
   ChevronLeft,
-  ChevronRight,
+  Video,
 } from "lucide-react";
 import GlowButton from "@/components/ui/GlowButton";
 
@@ -25,6 +25,7 @@ interface DoctorCardProps {
     image: string;
     experience: string;
     languages: string[];
+    videoCallAvailable?: boolean;
   };
   index?: number;
 }
@@ -111,8 +112,21 @@ const DoctorCard = ({ doctor, index = 0 }: DoctorCardProps) => {
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-border">
-            <GlowButton size="sm" className="w-full">
+          <div className="mt-4 pt-4 border-t border-border space-y-2" onClick={(e) => e.stopPropagation()}>
+            {doctor.videoCallAvailable && (
+              <button
+                onClick={() => alert("Video call would start here. (Demo)")}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+              >
+                <Video className="w-4 h-4" />
+                Video Call
+              </button>
+            )}
+            <GlowButton
+              size="sm"
+              className="w-full"
+              onClick={() => alert("Book appointment flow would open here. (Demo)")}
+            >
               <Calendar className="w-4 h-4 mr-2" />
               Book Appointment
             </GlowButton>
@@ -173,8 +187,24 @@ const DoctorCard = ({ doctor, index = 0 }: DoctorCardProps) => {
               </div>
             </div>
 
-            <div className="space-y-2 mt-4">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+            <div className="space-y-2 mt-4" onClick={(e) => e.stopPropagation()}>
+              {doctor.videoCallAvailable && (
+                <button
+                  onClick={() => alert("Video call would start here. (Demo)")}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary/10 border border-primary/30 text-primary hover:bg-primary/20 transition-colors font-medium"
+                >
+                  <Video className="w-4 h-4" />
+                  Video Call
+                </button>
+              )}
+              <button
+                onClick={() => alert("Book appointment flow would open here. (Demo)")}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-muted text-foreground hover:bg-muted/80 transition-colors"
+              >
+                <Calendar className="w-4 h-4" />
+                Book Appointment
+              </button>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-muted text-muted-foreground hover:text-foreground transition-colors">
                 <Phone className="w-4 h-4" />
                 Call Office
               </button>
