@@ -566,6 +566,9 @@ interface LocationState {
   medications?: string[];
 }
 
+const EMPTY_STRING_ARRAY: string[] = [];
+const EMPTY_BODY_PARTS: BodyPartDetail[] = [];
+
 const Results = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -583,17 +586,35 @@ const Results = () => {
 
   const state = location.state as LocationState | null;
   const symptomsText = state?.symptoms ?? "";
-  const quickSymptomsList = state?.quickSymptoms ?? [];
-  const bodyPartsDetailed = state?.bodyPartsDetailed ?? [];
+  // IMPORTANT: keep fallback arrays referentially stable to avoid effect loops on refresh/direct navigation
+  const quickSymptomsList = state?.quickSymptoms ?? EMPTY_STRING_ARRAY;
+  const bodyPartsDetailed = state?.bodyPartsDetailed ?? EMPTY_BODY_PARTS;
   const age = state?.age ?? 30;
   const gender = state?.gender ?? "";
-  const medications = state?.medications ?? [];
+  const medications = state?.medications ?? EMPTY_STRING_ARRAY;
   
   // Fallback rule-based results
   const ruleBasedResults = getRecommendationFromSymptoms(symptomsText, quickSymptomsList);
 
   // AI Analysis effect
   useEffect(() => {
+    // If AI is disabled (e.g. prior error), don't keep retrying on re-renders.
+    if (!useAI) {
+      setAiLoading(false);
+      return;
+    }
+
+    // If user landed on /results without any inputs (e.g. page refresh), skip AI.
+    const hasAnyInput =
+      Boolean(symptomsText?.trim()) ||
+      quickSymptomsList.length > 0 ||
+      bodyPartsDetailed.length > 0;
+    if (!hasAnyInput) {
+      setUseAI(false);
+      setAiLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setAiLoading(true);
     setAiError(null);
@@ -622,7 +643,7 @@ const Results = () => {
     return () => {
       cancelled = true;
     };
-  }, [symptomsText, quickSymptomsList, bodyPartsDetailed, age, gender, medications]);
+  }, [useAI, symptomsText, quickSymptomsList, bodyPartsDetailed, age, gender, medications]);
 
   // First measures effect
   useEffect(() => {
