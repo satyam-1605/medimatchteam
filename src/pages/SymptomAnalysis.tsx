@@ -68,7 +68,7 @@ const SymptomAnalysis = () => {
   const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
   // 3D body diagram: Map of partId -> symptomType
   const [selectedBodyParts3D, setSelectedBodyParts3D] = useState<Record<string, SymptomType>>({});
-  const [use3DView, setUse3DView] = useState(true);
+  const [use3DView, setUse3DView] = useState(false); // Default to 2D view for better compatibility
   const [age, setAge] = useState(30);
   const [gender, setGender] = useState<string>("");
   const [showMedicalHistory, setShowMedicalHistory] = useState(false);
