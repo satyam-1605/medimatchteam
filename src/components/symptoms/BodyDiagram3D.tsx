@@ -1,9 +1,53 @@
-import { useState, useRef, Suspense, useMemo } from "react";
+import { useState, useRef, Suspense, useMemo, useEffect, Component, ReactNode } from "react";
 import { Canvas, useFrame, ThreeEvent } from "@react-three/fiber";
-import { OrbitControls, Html, Environment, ContactShadows } from "@react-three/drei";
+import { OrbitControls, Html, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion } from "framer-motion";
-import { Layers, ZoomIn, ZoomOut, RotateCcw, Eye, Bone, Heart } from "lucide-react";
+import { Layers, ZoomIn, ZoomOut, RotateCcw, Eye, Bone, Heart, AlertTriangle } from "lucide-react";
+
+// Check if WebGL is available
+function isWebGLAvailable(): boolean {
+  try {
+    const canvas = document.createElement("canvas");
+    return !!(
+      window.WebGLRenderingContext &&
+      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Error boundary for catching WebGL errors
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class WebGLErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  ErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("WebGL Error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 // Body part data with 3D coordinates for different layers
 const bodyPartData: Record<string, {
@@ -384,11 +428,30 @@ interface BodyDiagram3DProps {
   onPartClick: (partId: string, symptomType: SymptomType) => void;
 }
 
+const WebGLFallback = () => (
+  <div className="w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border flex items-center justify-center">
+    <div className="text-center p-8">
+      <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-foreground mb-2">3D View Unavailable</h3>
+      <p className="text-sm text-muted-foreground max-w-md">
+        Your browser or device doesn't support WebGL, which is required for the 3D body diagram.
+        Please use the 2D view instead by clicking the grid icon above.
+      </p>
+    </div>
+  </div>
+);
+
 const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
   const [layer, setLayer] = useState<LayerType>("skin");
   const [currentSymptomType, setCurrentSymptomType] = useState<SymptomType>("pain");
   const [zoom, setZoom] = useState(3);
+  const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
   const controlsRef = useRef<any>(null);
+
+  // Check WebGL support on mount
+  useEffect(() => {
+    setWebglSupported(isWebGLAvailable());
+  }, []);
 
   const handlePartClick = (partId: string) => {
     onPartClick(partId, currentSymptomType);
@@ -414,8 +477,26 @@ const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
     { type: "organ", label: "Organs", icon: <Heart className="w-4 h-4" /> },
   ];
 
+  // Show loading state while checking WebGL
+  if (webglSupported === null) {
+    return (
+      <div className="w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Checking 3D support...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show fallback if WebGL not supported
+  if (!webglSupported) {
+    return <WebGLFallback />;
+  }
+
   return (
-    <div className="relative w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border">
+    <WebGLErrorBoundary fallback={<WebGLFallback />}>
+      <div className="relative w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border">
       {/* Layer Controls */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
         <div className="glass-panel p-2 flex flex-col gap-1">
@@ -553,6 +634,7 @@ const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
         </div>
       </div>
     </div>
+    </WebGLErrorBoundary>
   );
 };
 
