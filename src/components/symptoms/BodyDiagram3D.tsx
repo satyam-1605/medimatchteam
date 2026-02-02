@@ -1,21 +1,37 @@
-import { useState, useRef, Suspense, useMemo, useEffect, Component, ReactNode } from "react";
+import { useState, useRef, Suspense, useMemo, useEffect, useCallback, Component, ReactNode } from "react";
 import { Canvas, useFrame, ThreeEvent } from "@react-three/fiber";
 import { OrbitControls, Html, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 import { motion } from "framer-motion";
-import { Layers, ZoomIn, ZoomOut, RotateCcw, Eye, Bone, Heart, AlertTriangle } from "lucide-react";
+import { Layers, ZoomIn, ZoomOut, RotateCcw, Eye, Bone, Heart, AlertTriangle, HelpCircle } from "lucide-react";
+import WebGLTroubleshoot from "./WebGLTroubleshoot";
 
-// Check if WebGL is available
-function isWebGLAvailable(): boolean {
+// Check WebGL availability with WebGL1/2 detection
+function getWebGLSupport(): { supported: boolean; version: number | null; error?: string } {
   try {
     const canvas = document.createElement("canvas");
-    return !!(
-      window.WebGLRenderingContext &&
-      (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
-    );
-  } catch {
-    return false;
+    
+    // Try WebGL2 first
+    const gl2 = canvas.getContext("webgl2");
+    if (gl2) {
+      return { supported: true, version: 2 };
+    }
+    
+    // Fall back to WebGL1
+    const gl1 = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+    if (gl1) {
+      return { supported: true, version: 1 };
+    }
+    
+    return { supported: false, version: null, error: "WebGL not available" };
+  } catch (e) {
+    return { supported: false, version: null, error: String(e) };
   }
+}
+
+// Legacy check for simple boolean
+function isWebGLAvailable(): boolean {
+  return getWebGLSupport().supported;
 }
 
 // Error boundary for catching WebGL errors
@@ -24,11 +40,14 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-class WebGLErrorBoundary extends Component<
-  { children: ReactNode; fallback: ReactNode },
-  ErrorBoundaryState
-> {
-  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+interface WebGLErrorBoundaryProps {
+  children: ReactNode;
+  fallback: ReactNode;
+  onError?: (error: Error) => void;
+}
+
+class WebGLErrorBoundary extends Component<WebGLErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: WebGLErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
   }
@@ -39,6 +58,7 @@ class WebGLErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("WebGL Error:", error, errorInfo);
+    this.props.onError?.(error);
   }
 
   render() {
@@ -428,15 +448,33 @@ interface BodyDiagram3DProps {
   onPartClick: (partId: string, symptomType: SymptomType) => void;
 }
 
-const WebGLFallback = () => (
+// Enhanced fallback with troubleshooting option
+interface WebGLFallbackProps {
+  onTroubleshoot?: () => void;
+}
+
+const WebGLFallback = ({ onTroubleshoot }: WebGLFallbackProps) => (
   <div className="w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border flex items-center justify-center">
-    <div className="text-center p-8">
+    <div className="text-center p-8 max-w-md">
       <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
       <h3 className="text-lg font-semibold text-foreground mb-2">3D View Unavailable</h3>
-      <p className="text-sm text-muted-foreground max-w-md">
+      <p className="text-sm text-muted-foreground mb-4">
         Your browser or device doesn't support WebGL, which is required for the 3D body diagram.
-        Please use the 2D view instead by clicking the grid icon above.
       </p>
+      <div className="flex flex-col gap-2">
+        {onTroubleshoot && (
+          <button
+            onClick={onTroubleshoot}
+            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+          >
+            <HelpCircle className="w-4 h-4" />
+            How to Enable 3D
+          </button>
+        )}
+        <p className="text-xs text-muted-foreground">
+          Or use the 2D view by clicking the grid icon above.
+        </p>
+      </div>
     </div>
   </div>
 );
@@ -446,11 +484,48 @@ const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
   const [currentSymptomType, setCurrentSymptomType] = useState<SymptomType>("pain");
   const [zoom, setZoom] = useState(3);
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null);
+  const [showTroubleshoot, setShowTroubleshoot] = useState(false);
+  const [webglError, setWebglError] = useState<string | null>(null);
+  const [contextLost, setContextLost] = useState(false);
   const controlsRef = useRef<any>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   // Check WebGL support on mount
   useEffect(() => {
-    setWebglSupported(isWebGLAvailable());
+    const support = getWebGLSupport();
+    setWebglSupported(support.supported);
+    if (!support.supported) {
+      setWebglError(support.error || "WebGL not supported");
+    }
+  }, []);
+
+  // Handle WebGL context loss/restoration
+  useEffect(() => {
+    const handleContextLost = (e: Event) => {
+      e.preventDefault();
+      console.warn("WebGL context lost");
+      setContextLost(true);
+    };
+
+    const handleContextRestored = () => {
+      console.log("WebGL context restored");
+      setContextLost(false);
+    };
+
+    // Listen on window for context events
+    window.addEventListener("webglcontextlost", handleContextLost);
+    window.addEventListener("webglcontextrestored", handleContextRestored);
+
+    return () => {
+      window.removeEventListener("webglcontextlost", handleContextLost);
+      window.removeEventListener("webglcontextrestored", handleContextRestored);
+    };
+  }, []);
+
+  const handleWebGLError = useCallback((error: Error) => {
+    console.error("WebGL Error caught:", error);
+    setWebglSupported(false);
+    setWebglError(error.message);
   }, []);
 
   const handlePartClick = (partId: string) => {
@@ -489,98 +564,155 @@ const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
     );
   }
 
+  // Show context lost state
+  if (contextLost) {
+    return (
+      <div className="w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border flex items-center justify-center">
+        <div className="text-center p-8">
+          <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">3D View Interrupted</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            The 3D context was lost. This can happen when the GPU is under heavy load.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm hover:bg-primary/90 transition-colors"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show fallback if WebGL not supported
   if (!webglSupported) {
-    return <WebGLFallback />;
+    return (
+      <>
+        <WebGLFallback onTroubleshoot={() => setShowTroubleshoot(true)} />
+        <WebGLTroubleshoot isOpen={showTroubleshoot} onClose={() => setShowTroubleshoot(false)} />
+      </>
+    );
   }
 
   return (
-    <WebGLErrorBoundary fallback={<WebGLFallback />}>
-      <div className="relative w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border">
-      {/* Layer Controls */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-        <div className="glass-panel p-2 flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground px-2 flex items-center gap-1">
-            <Layers className="w-3 h-3" /> Layer
-          </span>
-          {layers.map((l) => (
-            <motion.button
-              key={l.type}
-              onClick={() => setLayer(l.type)}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                layer === l.type
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
-              }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              {l.icon}
-              {l.label}
-            </motion.button>
-          ))}
-        </div>
-      </div>
-
-      {/* Symptom Type Selector */}
-      <div className="absolute top-4 right-4 z-10 glass-panel p-2">
-        <span className="text-xs text-muted-foreground px-2 block mb-1">Symptom Type</span>
-        <div className="flex flex-wrap gap-1">
-          {symptomTypes.map((s) => (
-            <motion.button
-              key={s.type}
-              onClick={() => setCurrentSymptomType(s.type)}
-              className={`px-2 py-1 rounded text-xs font-medium transition-all ${
-                currentSymptomType === s.type
-                  ? "ring-2 ring-offset-1 ring-offset-background"
-                  : "opacity-70 hover:opacity-100"
-              }`}
-              style={{ 
-                backgroundColor: s.color + "30",
-                color: s.color,
-                borderColor: s.color,
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {s.label}
-            </motion.button>
-          ))}
-        </div>
-      </div>
-
-      {/* Zoom Controls */}
-      <div className="absolute bottom-4 right-4 z-10 glass-panel p-1 flex gap-1">
-        <button
-          onClick={() => setZoom((z) => Math.max(1.5, z - 0.5))}
-          className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ZoomIn className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => setZoom((z) => Math.min(6, z + 0.5))}
-          className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ZoomOut className="w-4 h-4" />
-        </button>
-        <button
-          onClick={resetView}
-          className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <RotateCcw className="w-4 h-4" />
-        </button>
-      </div>
-
-      {/* Instructions */}
-      <div className="absolute bottom-4 left-4 z-10 text-xs text-muted-foreground">
-        <p>Drag to rotate • Scroll to zoom • Click to select</p>
-      </div>
-
-      {/* 3D Canvas */}
-      <Canvas
-        camera={{ position: [0, 0.5, zoom], fov: 50 }}
-        style={{ background: 'transparent' }}
+    <>
+      <WebGLErrorBoundary 
+        fallback={<WebGLFallback onTroubleshoot={() => setShowTroubleshoot(true)} />}
+        onError={handleWebGLError}
       >
+        <div 
+          ref={canvasContainerRef}
+          className="relative w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border"
+        >
+          {/* Help Button */}
+          <button
+            onClick={() => setShowTroubleshoot(true)}
+            className="absolute top-4 right-[140px] z-10 p-2 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            title="Troubleshoot 3D issues"
+          >
+            <HelpCircle className="w-4 h-4" />
+          </button>
+
+          {/* Layer Controls */}
+          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+            <div className="glass-panel p-2 flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground px-2 flex items-center gap-1">
+                <Layers className="w-3 h-3" /> Layer
+              </span>
+              {layers.map((l) => (
+                <motion.button
+                  key={l.type}
+                  onClick={() => setLayer(l.type)}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                    layer === l.type
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  {l.icon}
+                  {l.label}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Symptom Type Selector */}
+          <div className="absolute top-4 right-4 z-10 glass-panel p-2">
+            <span className="text-xs text-muted-foreground px-2 block mb-1">Symptom Type</span>
+            <div className="flex flex-wrap gap-1">
+              {symptomTypes.map((s) => (
+                <motion.button
+                  key={s.type}
+                  onClick={() => setCurrentSymptomType(s.type)}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                    currentSymptomType === s.type
+                      ? "ring-2 ring-offset-1 ring-offset-background"
+                      : "opacity-70 hover:opacity-100"
+                  }`}
+                  style={{ 
+                    backgroundColor: s.color + "30",
+                    color: s.color,
+                    borderColor: s.color,
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  {s.label}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Zoom Controls */}
+          <div className="absolute bottom-4 right-4 z-10 glass-panel p-1 flex gap-1">
+            <button
+              onClick={() => setZoom((z) => Math.max(1.5, z - 0.5))}
+              className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setZoom((z) => Math.min(6, z + 0.5))}
+              className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </button>
+            <button
+              onClick={resetView}
+              className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Instructions */}
+          <div className="absolute bottom-4 left-4 z-10 text-xs text-muted-foreground">
+            <p>Drag to rotate • Scroll to zoom • Click to select</p>
+          </div>
+
+          {/* 3D Canvas with WebGL fallback configuration */}
+          <Canvas
+            camera={{ position: [0, 0.5, zoom], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{
+              antialias: true,
+              alpha: true,
+              powerPreference: 'default',
+              failIfMajorPerformanceCaveat: false, // Allow software rendering
+              preserveDrawingBuffer: true,
+            }}
+            onCreated={({ gl }) => {
+              // Log WebGL info for debugging
+              const glContext = gl.getContext();
+              const debugInfo = glContext.getExtension('WEBGL_debug_renderer_info');
+              if (debugInfo) {
+                console.log('WebGL Renderer:', glContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+              }
+            }}
+          >
         <Suspense fallback={null}>
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 5, 5]} intensity={0.8} />
@@ -632,9 +764,11 @@ const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
             </span>
           )}
         </div>
-      </div>
-    </div>
-    </WebGLErrorBoundary>
+        </div>
+        </div>
+      </WebGLErrorBoundary>
+      <WebGLTroubleshoot isOpen={showTroubleshoot} onClose={() => setShowTroubleshoot(false)} />
+    </>
   );
 };
 
