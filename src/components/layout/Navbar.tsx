@@ -2,19 +2,22 @@ import { motion } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { Activity, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import GlowButton from "@/components/ui/GlowButton";
-
-const navLinks = [
-  { path: "/", label: "Home" },
-  { path: "/symptoms", label: "Symptom Analysis" },
-  { path: "/results", label: "Results" },
-  { path: "/doctors", label: "Find Doctors" },
-  { path: "/dashboard", label: "Dashboard" },
-];
+import LanguageSelector from "@/components/ui/LanguageSelector";
 
 const Navbar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation();
+
+  const navLinks = [
+    { path: "/", label: t("nav.home") },
+    { path: "/symptoms", label: t("nav.symptoms") },
+    { path: "/results", label: t("nav.results") },
+    { path: "/doctors", label: t("nav.doctors") },
+    { path: "/dashboard", label: t("nav.dashboard") },
+  ];
 
   return (
     <motion.nav
@@ -53,10 +56,11 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* Language Selector & CTA Button */}
+          <div className="hidden md:flex items-center gap-3">
+            <LanguageSelector variant="compact" />
             <Link to="/symptoms">
-              <GlowButton size="sm">Start Analysis</GlowButton>
+              <GlowButton size="sm">{t("nav.startAnalysis")}</GlowButton>
             </Link>
           </div>
 
@@ -91,9 +95,10 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4">
+            <div className="pt-4 flex flex-col gap-3">
+              <LanguageSelector variant="dropdown" />
               <Link to="/symptoms" onClick={() => setIsOpen(false)}>
-                <GlowButton size="sm" className="w-full">Start Analysis</GlowButton>
+                <GlowButton size="sm" className="w-full">{t("nav.startAnalysis")}</GlowButton>
               </Link>
             </div>
           </div>

@@ -1,0 +1,234 @@
+{
+  "common": {
+    "appName": "MediMatch",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Try Again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "submit": "Submit",
+    "search": "Search",
+    "filter": "Filter",
+    "viewAll": "View All",
+    "learnMore": "Learn More",
+    "back": "Back",
+    "next": "Next",
+    "add": "Add",
+    "remove": "Remove",
+    "edit": "Edit",
+    "delete": "Delete",
+    "download": "Download",
+    "export": "Export",
+    "selectLanguage": "Select Language"
+  },
+  "nav": {
+    "home": "Home",
+    "symptoms": "Symptom Analysis",
+    "results": "Results",
+    "doctors": "Find Doctors",
+    "dashboard": "Dashboard",
+    "startAnalysis": "Start Analysis"
+  },
+  "home": {
+    "tagline": "AI-Powered Healthcare Navigation",
+    "headline": "Find Your Perfect Medical Specialist",
+    "subheadline": "AI-Powered Symptom Analysis & Specialist Matching. Get accurate recommendations in seconds, not hours.",
+    "startFreeAnalysis": "Start Free Analysis",
+    "browseSpecialists": "Browse Specialists",
+    "howItWorks": "How MediMatch Works",
+    "howItWorksSubtitle": "Our AI-powered platform revolutionizes how you find the right medical care",
+    "features": {
+      "aiAnalysis": {
+        "title": "AI Symptom Analysis",
+        "description": "Advanced machine learning algorithms analyze your symptoms to provide accurate insights and recommendations."
+      },
+      "instantMatching": {
+        "title": "Instant Specialist Matching",
+        "description": "Our intelligent matching system connects you with the most suitable medical specialists in seconds."
+      },
+      "emergencyDetection": {
+        "title": "Emergency Detection",
+        "description": "Real-time monitoring detects critical symptoms and provides immediate emergency guidance when needed."
+      }
+    },
+    "stats": {
+      "accuracyRate": "Accuracy Rate",
+      "patientsMatched": "Patients Matched",
+      "specialists": "Specialists",
+      "availability": "Availability"
+    },
+    "trust": {
+      "hipaaCompliant": "HIPAA Compliant",
+      "hipaaDesc": "Your data is always protected",
+      "verifiedSpecialists": "Verified Specialists",
+      "verifiedDesc": "All doctors are vetted",
+      "available247": "24/7 Available",
+      "available247Desc": "Get help anytime"
+    },
+    "cta": {
+      "ready": "Ready to Find Your Perfect Match?",
+      "ctaSubtitle": "Start your free symptom analysis now and get matched with the right specialist in minutes."
+    },
+    "footer": {
+      "copyright": "© 2024 MediMatch. AI-Powered Healthcare Navigation."
+    }
+  },
+  "symptoms": {
+    "title": "Symptom Analysis",
+    "subtitle": "Describe your symptoms in detail for the most accurate specialist recommendation",
+    "describeSymptoms": "Describe Your Symptoms",
+    "placeholder": "Tell us what you're experiencing...",
+    "recording": "Recording... Speak clearly",
+    "quickAdd": "Quick Add Symptoms",
+    "age": "Age",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "medicalHistory": "Medical History & Medications",
+    "currentMedications": "Current Medications",
+    "addMedication": "Add medication...",
+    "clickBodyParts": "Click Affected Body Parts",
+    "view2D": "2D View",
+    "view3D": "3D View",
+    "selectedAreas": "Selected areas:",
+    "selectedSymptomType": "Selected symptom type:",
+    "analyzeButton": "Analyze Symptoms",
+    "analyzingButton": "Analyzing...",
+    "symptomTypes": {
+      "pain": "Pain",
+      "swelling": "Swelling",
+      "numbness": "Numbness",
+      "rash": "Rash"
+    },
+    "quickSymptoms": {
+      "headache": "Headache",
+      "fever": "Fever",
+      "cough": "Cough",
+      "fatigue": "Fatigue",
+      "nausea": "Nausea",
+      "dizziness": "Dizziness",
+      "backPain": "Back Pain",
+      "chestPain": "Chest Pain",
+      "shortnessOfBreath": "Shortness of Breath",
+      "jointPain": "Joint Pain",
+      "morningStiffness": "Morning Stiffness",
+      "numbness": "Numbness",
+      "injury": "Injury",
+      "swelling": "Swelling",
+      "abdominalPain": "Abdominal Pain",
+      "skinRash": "Skin Rash",
+      "itching": "Itching",
+      "eyePain": "Eye Pain",
+      "blurredVision": "Blurred Vision",
+      "soreThroat": "Sore Throat",
+      "earPain": "Ear Pain",
+      "allergies": "Allergies",
+      "sneezing": "Sneezing",
+      "anxiety": "Anxiety",
+      "lowMood": "Low Mood",
+      "sleepProblems": "Sleep Problems",
+      "tingling": "Tingling",
+      "musclePain": "Muscle Pain",
+      "heartPalpitations": "Heart Palpitations",
+      "urinaryIssues": "Urinary Issues",
+      "weightChanges": "Weight Changes",
+      "excessiveThirst": "Excessive Thirst"
+    }
+  },
+  "emergency": {
+    "title": "Emergency Symptoms Detected",
+    "message": "Based on your symptoms, you may be experiencing a medical emergency.",
+    "detectedKeywords": "Detected keywords:",
+    "call911": "Call 911 Now",
+    "notEmergency": "If this is not an emergency, you can close this and continue with your symptom analysis."
+  },
+  "results": {
+    "title": "Your Analysis Results",
+    "subtitle": "AI-powered recommendations based on your symptoms",
+    "urgencyLevel": "Urgency Level",
+    "primaryRecommendation": "Primary Recommendation",
+    "alternativeSpecialists": "Alternative Specialists",
+    "matchPercentage": "{{percentage}}% Match",
+    "reasoningTitle": "AI Reasoning",
+    "governmentSchemes": "Government Health Schemes",
+    "schemeCoverage": "Scheme Coverage",
+    "eligibility": "Eligibility",
+    "visitWebsite": "Visit Website",
+    "firstMeasures": "First Measures",
+    "disclaimer": "This is an AI-powered recommendation and should not replace professional medical advice. Please consult with a healthcare provider for diagnosis and treatment.",
+    "newAnalysis": "Start New Analysis",
+    "findDoctors": "Find Doctors",
+    "downloadReport": "Download Report",
+    "noSymptoms": "No symptoms data found. Please start a new analysis.",
+    "urgency": {
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High"
+    }
+  },
+  "doctors": {
+    "title": "Find Specialists",
+    "subtitle": "Browse our network of verified healthcare professionals",
+    "searchPlaceholder": "Search doctors or specialties...",
+    "allSpecialties": "All Specialties",
+    "showing": "Showing",
+    "specialists": "specialists",
+    "in": "in",
+    "sortBy": "Sort by:",
+    "rating": "Rating",
+    "distance": "Distance",
+    "reviews": "Reviews",
+    "available": "Available",
+    "busy": "Busy",
+    "offline": "Offline",
+    "nextAvailable": "Next available:",
+    "experience": "{{years}} experience",
+    "languages": "Languages:",
+    "videoCall": "Video Call Available",
+    "bookAppointment": "Book Appointment",
+    "viewProfile": "View Profile"
+  },
+  "dashboard": {
+    "title": "Health Dashboard",
+    "subtitle": "Track your health journey and analysis history",
+    "healthScore": "Health Score",
+    "analyses": "Analyses",
+    "appointments": "Appointments",
+    "reports": "Reports",
+    "healthTrend": "Health Trend",
+    "thisMonth": "+{{percentage}}% this month",
+    "symptomCategories": "Symptom Categories",
+    "weeklyActivity": "Weekly Activity",
+    "healthTimeline": "Health Timeline",
+    "quickActions": "Quick Actions",
+    "newAnalysis": "New Analysis",
+    "exportData": "Export Data",
+    "categories": {
+      "neurological": "Neurological",
+      "cardiovascular": "Cardiovascular",
+      "respiratory": "Respiratory",
+      "other": "Other"
+    },
+    "timelineTypes": {
+      "appointment": "Appointment",
+      "report": "Report",
+      "symptom": "Symptom"
+    }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Please check your connection.",
+    "notFound": "Page not found",
+    "unauthorized": "You are not authorized to view this page.",
+    "validation": "Please check your input and try again.",
+    "analysisError": "AI analysis failed. Using fallback recommendations."
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email address",
+    "minLength": "Must be at least {{min}} characters",
+    "maxLength": "Must be at most {{max}} characters"
+  }
+}
