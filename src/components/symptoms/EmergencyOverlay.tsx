@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertTriangle, Phone, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import GlowButton from "@/components/ui/GlowButton";
 
 interface EmergencyOverlayProps {
@@ -31,6 +32,8 @@ export const checkForEmergency = (text: string): string[] => {
 };
 
 const EmergencyOverlay = ({ isVisible, onClose, detectedSymptoms }: EmergencyOverlayProps) => {
+  const { t } = useTranslation();
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -74,15 +77,15 @@ const EmergencyOverlay = ({ isVisible, onClose, detectedSymptoms }: EmergencyOve
               </motion.div>
 
               <h2 className="text-2xl font-display font-bold text-destructive mb-4">
-                Emergency Symptoms Detected
+                {t("emergency.title")}
               </h2>
 
               <p className="text-muted-foreground mb-4">
-                Based on your symptoms, you may be experiencing a medical emergency.
+                {t("emergency.message")}
               </p>
 
               <div className="bg-muted/50 rounded-lg p-4 mb-6">
-                <p className="text-sm text-muted-foreground mb-2">Detected keywords:</p>
+                <p className="text-sm text-muted-foreground mb-2">{t("emergency.detectedKeywords")}</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {detectedSymptoms.map((symptom) => (
                     <span
@@ -102,11 +105,11 @@ const EmergencyOverlay = ({ isVisible, onClose, detectedSymptoms }: EmergencyOve
                 onClick={() => window.open("tel:911")}
               >
                 <Phone className="w-5 h-5 mr-2" />
-                Call 911 Now
+                {t("emergency.call911")}
               </GlowButton>
 
               <p className="text-xs text-muted-foreground">
-                If this is not an emergency, you can close this and continue with your symptom analysis.
+                {t("emergency.notEmergency")}
               </p>
             </div>
           </motion.div>

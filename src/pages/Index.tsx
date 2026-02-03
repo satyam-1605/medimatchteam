@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Brain, Radar, HeartPulse, Users, Shield, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import TypewriterText from "@/components/ui/TypewriterText";
 import MedicalCross from "@/components/ui/MedicalCross";
@@ -10,32 +11,40 @@ import GlowButton from "@/components/ui/GlowButton";
 import Navbar from "@/components/layout/Navbar";
 
 const Index = () => {
+  const { t } = useTranslation();
+
   const features = [
     {
       icon: Brain,
-      title: "AI Symptom Analysis",
-      description: "Advanced machine learning algorithms analyze your symptoms to provide accurate insights and recommendations.",
+      title: t("home.features.aiAnalysis.title"),
+      description: t("home.features.aiAnalysis.description"),
       animation: "pulse" as const,
     },
     {
       icon: Radar,
-      title: "Instant Specialist Matching",
-      description: "Our intelligent matching system connects you with the most suitable medical specialists in seconds.",
+      title: t("home.features.instantMatching.title"),
+      description: t("home.features.instantMatching.description"),
       animation: "radar" as const,
     },
     {
       icon: HeartPulse,
-      title: "Emergency Detection",
-      description: "Real-time monitoring detects critical symptoms and provides immediate emergency guidance when needed.",
+      title: t("home.features.emergencyDetection.title"),
+      description: t("home.features.emergencyDetection.description"),
       animation: "heartbeat" as const,
     },
   ];
 
   const stats = [
-    { value: 98, suffix: "%", label: "Accuracy Rate" },
-    { value: 10000, suffix: "+", label: "Patients Matched" },
-    { value: 500, suffix: "+", label: "Specialists" },
-    { value: 24, suffix: "/7", label: "Availability" },
+    { value: 98, suffix: "%", label: t("home.stats.accuracyRate") },
+    { value: 10000, suffix: "+", label: t("home.stats.patientsMatched") },
+    { value: 500, suffix: "+", label: t("home.stats.specialists") },
+    { value: 24, suffix: "/7", label: t("home.stats.availability") },
+  ];
+
+  const trustItems = [
+    { icon: Shield, title: t("home.trust.hipaaCompliant"), desc: t("home.trust.hipaaDesc") },
+    { icon: Users, title: t("home.trust.verifiedSpecialists"), desc: t("home.trust.verifiedDesc") },
+    { icon: Clock, title: t("home.trust.available247"), desc: t("home.trust.available247Desc") },
   ];
 
   const containerVariants = {
@@ -79,7 +88,7 @@ const Index = () => {
             >
               <motion.div variants={itemVariants}>
                 <span className="inline-block px-4 py-2 rounded-full bg-primary/10 border border-primary/30 text-primary text-sm font-medium mb-6">
-                  🏥 AI-Powered Healthcare Navigation
+                  🏥 {t("home.tagline")}
                 </span>
               </motion.div>
 
@@ -88,7 +97,7 @@ const Index = () => {
                 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight mb-6"
               >
                 <TypewriterText
-                  text="Find Your Perfect Medical Specialist"
+                  text={t("home.headline")}
                   delay={50}
                   className="headline-gradient"
                 />
@@ -98,7 +107,7 @@ const Index = () => {
                 variants={itemVariants}
                 className="text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
               >
-                AI-Powered Symptom Analysis & Specialist Matching. Get accurate recommendations in seconds, not hours.
+                {t("home.subheadline")}
               </motion.p>
 
               <motion.div
@@ -107,7 +116,7 @@ const Index = () => {
               >
                 <Link to="/symptoms">
                   <GlowButton size="lg">
-                    Start Free Analysis
+                    {t("home.startFreeAnalysis")}
                   </GlowButton>
                 </Link>
                 <Link to="/doctors">
@@ -116,7 +125,7 @@ const Index = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    Browse Specialists
+                    {t("home.browseSpecialists")}
                   </motion.button>
                 </Link>
               </motion.div>
@@ -191,10 +200,12 @@ const Index = () => {
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
-              How <span className="text-primary text-glow">MediMatch</span> Works
+              {t("home.howItWorks").split("MediMatch")[0]}
+              <span className="text-primary text-glow">MediMatch</span>
+              {t("home.howItWorks").split("MediMatch")[1] || ""}
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Our AI-powered platform revolutionizes how you find the right medical care
+              {t("home.howItWorksSubtitle")}
             </p>
           </motion.div>
 
@@ -218,11 +229,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              { icon: Shield, title: "HIPAA Compliant", desc: "Your data is always protected" },
-              { icon: Users, title: "Verified Specialists", desc: "All doctors are vetted" },
-              { icon: Clock, title: "24/7 Available", desc: "Get help anytime" },
-            ].map((item, index) => (
+            {trustItems.map((item, index) => (
               <motion.div
                 key={item.title}
                 className="flex items-center gap-4 glass-panel p-6"
@@ -256,14 +263,14 @@ const Index = () => {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-48 bg-primary/20 rounded-full blur-3xl" />
             <div className="relative z-10">
               <h2 className="text-3xl md:text-4xl font-display font-bold mb-4">
-                Ready to Find Your <span className="text-primary text-glow">Perfect Match</span>?
+                {t("home.cta.ready")}
               </h2>
               <p className="text-muted-foreground text-lg mb-8 max-w-xl mx-auto">
-                Start your free symptom analysis now and get matched with the right specialist in minutes.
+                {t("home.cta.ctaSubtitle")}
               </p>
               <Link to="/symptoms">
                 <GlowButton size="lg">
-                  Start Free Analysis
+                  {t("home.startFreeAnalysis")}
                 </GlowButton>
               </Link>
             </div>
@@ -277,10 +284,10 @@ const Index = () => {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <HeartPulse className="w-6 h-6 text-primary" />
-              <span className="font-display font-bold">MediMatch</span>
+              <span className="font-display font-bold">{t("common.appName")}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 MediMatch. AI-Powered Healthcare Navigation.
+              {t("home.footer.copyright")}
             </p>
           </div>
         </div>

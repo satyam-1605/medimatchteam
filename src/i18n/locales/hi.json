@@ -1,0 +1,234 @@
+{
+  "common": {
+    "appName": "मेडीमैच",
+    "loading": "लोड हो रहा है...",
+    "error": "एक त्रुटि हुई",
+    "retry": "पुनः प्रयास करें",
+    "cancel": "रद्द करें",
+    "save": "सहेजें",
+    "close": "बंद करें",
+    "submit": "जमा करें",
+    "search": "खोजें",
+    "filter": "फ़िल्टर",
+    "viewAll": "सभी देखें",
+    "learnMore": "और जानें",
+    "back": "वापस",
+    "next": "अगला",
+    "add": "जोड़ें",
+    "remove": "हटाएं",
+    "edit": "संपादित करें",
+    "delete": "मिटाएं",
+    "download": "डाउनलोड",
+    "export": "निर्यात",
+    "selectLanguage": "भाषा चुनें"
+  },
+  "nav": {
+    "home": "होम",
+    "symptoms": "लक्षण विश्लेषण",
+    "results": "परिणाम",
+    "doctors": "डॉक्टर खोजें",
+    "dashboard": "डैशबोर्ड",
+    "startAnalysis": "विश्लेषण शुरू करें"
+  },
+  "home": {
+    "tagline": "AI-संचालित स्वास्थ्य सेवा नेविगेशन",
+    "headline": "अपना आदर्श चिकित्सा विशेषज्ञ खोजें",
+    "subheadline": "AI-संचालित लक्षण विश्लेषण और विशेषज्ञ मिलान। सेकंडों में सटीक सिफारिशें प्राप्त करें।",
+    "startFreeAnalysis": "मुफ्त विश्लेषण शुरू करें",
+    "browseSpecialists": "विशेषज्ञों को ब्राउज़ करें",
+    "howItWorks": "मेडीमैच कैसे काम करता है",
+    "howItWorksSubtitle": "हमारा AI-संचालित प्लेटफॉर्म आपको सही चिकित्सा देखभाल खोजने के तरीके को बदल देता है",
+    "features": {
+      "aiAnalysis": {
+        "title": "AI लक्षण विश्लेषण",
+        "description": "उन्नत मशीन लर्निंग एल्गोरिदम सटीक अंतर्दृष्टि और सिफारिशें प्रदान करने के लिए आपके लक्षणों का विश्लेषण करते हैं।"
+      },
+      "instantMatching": {
+        "title": "तत्काल विशेषज्ञ मिलान",
+        "description": "हमारी बुद्धिमान मिलान प्रणाली आपको सेकंडों में सबसे उपयुक्त चिकित्सा विशेषज्ञों से जोड़ती है।"
+      },
+      "emergencyDetection": {
+        "title": "आपातकालीन पहचान",
+        "description": "रीयल-टाइम निगरानी गंभीर लक्षणों का पता लगाती है और आवश्यकता होने पर तत्काल आपातकालीन मार्गदर्शन प्रदान करती है।"
+      }
+    },
+    "stats": {
+      "accuracyRate": "सटीकता दर",
+      "patientsMatched": "रोगी मिलान",
+      "specialists": "विशेषज्ञ",
+      "availability": "उपलब्धता"
+    },
+    "trust": {
+      "hipaaCompliant": "HIPAA अनुपालित",
+      "hipaaDesc": "आपका डेटा हमेशा सुरक्षित है",
+      "verifiedSpecialists": "सत्यापित विशेषज्ञ",
+      "verifiedDesc": "सभी डॉक्टर सत्यापित हैं",
+      "available247": "24/7 उपलब्ध",
+      "available247Desc": "कभी भी मदद पाएं"
+    },
+    "cta": {
+      "ready": "अपना आदर्श मैच खोजने के लिए तैयार हैं?",
+      "ctaSubtitle": "अभी अपना मुफ्त लक्षण विश्लेषण शुरू करें और मिनटों में सही विशेषज्ञ से मिलान करें।"
+    },
+    "footer": {
+      "copyright": "© 2024 मेडीमैच। AI-संचालित स्वास्थ्य सेवा नेविगेशन।"
+    }
+  },
+  "symptoms": {
+    "title": "लक्षण विश्लेषण",
+    "subtitle": "सबसे सटीक विशेषज्ञ सिफारिश के लिए अपने लक्षणों का विस्तार से वर्णन करें",
+    "describeSymptoms": "अपने लक्षणों का वर्णन करें",
+    "placeholder": "हमें बताएं कि आप क्या अनुभव कर रहे हैं...",
+    "recording": "रिकॉर्डिंग... स्पष्ट बोलें",
+    "quickAdd": "त्वरित लक्षण जोड़ें",
+    "age": "उम्र",
+    "gender": "लिंग",
+    "male": "पुरुष",
+    "female": "महिला",
+    "other": "अन्य",
+    "medicalHistory": "चिकित्सा इतिहास और दवाएं",
+    "currentMedications": "वर्तमान दवाएं",
+    "addMedication": "दवा जोड़ें...",
+    "clickBodyParts": "प्रभावित शरीर के अंगों पर क्लिक करें",
+    "view2D": "2D दृश्य",
+    "view3D": "3D दृश्य",
+    "selectedAreas": "चयनित क्षेत्र:",
+    "selectedSymptomType": "चयनित लक्षण प्रकार:",
+    "analyzeButton": "लक्षणों का विश्लेषण करें",
+    "analyzingButton": "विश्लेषण हो रहा है...",
+    "symptomTypes": {
+      "pain": "दर्द",
+      "swelling": "सूजन",
+      "numbness": "सुन्नता",
+      "rash": "चकत्ते"
+    },
+    "quickSymptoms": {
+      "headache": "सिरदर्द",
+      "fever": "बुखार",
+      "cough": "खांसी",
+      "fatigue": "थकान",
+      "nausea": "मतली",
+      "dizziness": "चक्कर",
+      "backPain": "पीठ दर्द",
+      "chestPain": "छाती में दर्द",
+      "shortnessOfBreath": "सांस की तकलीफ",
+      "jointPain": "जोड़ों का दर्द",
+      "morningStiffness": "सुबह की अकड़न",
+      "numbness": "सुन्नता",
+      "injury": "चोट",
+      "swelling": "सूजन",
+      "abdominalPain": "पेट दर्द",
+      "skinRash": "त्वचा पर चकत्ते",
+      "itching": "खुजली",
+      "eyePain": "आंख में दर्द",
+      "blurredVision": "धुंधली दृष्टि",
+      "soreThroat": "गले में खराश",
+      "earPain": "कान में दर्द",
+      "allergies": "एलर्जी",
+      "sneezing": "छींक",
+      "anxiety": "चिंता",
+      "lowMood": "उदासी",
+      "sleepProblems": "नींद की समस्या",
+      "tingling": "झुनझुनी",
+      "musclePain": "मांसपेशियों में दर्द",
+      "heartPalpitations": "दिल की धड़कन",
+      "urinaryIssues": "मूत्र समस्याएं",
+      "weightChanges": "वजन में बदलाव",
+      "excessiveThirst": "अत्यधिक प्यास"
+    }
+  },
+  "emergency": {
+    "title": "आपातकालीन लक्षण पाए गए",
+    "message": "आपके लक्षणों के आधार पर, आप एक चिकित्सा आपातकाल का अनुभव कर सकते हैं।",
+    "detectedKeywords": "पाए गए कीवर्ड:",
+    "call911": "अभी 112 पर कॉल करें",
+    "notEmergency": "यदि यह आपातकाल नहीं है, तो आप इसे बंद कर सकते हैं और अपने लक्षण विश्लेषण के साथ जारी रख सकते हैं।"
+  },
+  "results": {
+    "title": "आपके विश्लेषण परिणाम",
+    "subtitle": "आपके लक्षणों के आधार पर AI-संचालित सिफारिशें",
+    "urgencyLevel": "तात्कालिकता स्तर",
+    "primaryRecommendation": "प्राथमिक सिफारिश",
+    "alternativeSpecialists": "वैकल्पिक विशेषज्ञ",
+    "matchPercentage": "{{percentage}}% मिलान",
+    "reasoningTitle": "AI तर्क",
+    "governmentSchemes": "सरकारी स्वास्थ्य योजनाएं",
+    "schemeCoverage": "योजना कवरेज",
+    "eligibility": "पात्रता",
+    "visitWebsite": "वेबसाइट पर जाएं",
+    "firstMeasures": "प्राथमिक उपाय",
+    "disclaimer": "यह एक AI-संचालित सिफारिश है और पेशेवर चिकित्सा सलाह की जगह नहीं लेनी चाहिए। निदान और उपचार के लिए कृपया किसी स्वास्थ्य सेवा प्रदाता से परामर्श करें।",
+    "newAnalysis": "नया विश्लेषण शुरू करें",
+    "findDoctors": "डॉक्टर खोजें",
+    "downloadReport": "रिपोर्ट डाउनलोड करें",
+    "noSymptoms": "कोई लक्षण डेटा नहीं मिला। कृपया नया विश्लेषण शुरू करें।",
+    "urgency": {
+      "low": "कम",
+      "moderate": "मध्यम",
+      "high": "उच्च"
+    }
+  },
+  "doctors": {
+    "title": "विशेषज्ञ खोजें",
+    "subtitle": "हमारे सत्यापित स्वास्थ्य पेशेवरों के नेटवर्क को ब्राउज़ करें",
+    "searchPlaceholder": "डॉक्टर या विशेषता खोजें...",
+    "allSpecialties": "सभी विशेषताएं",
+    "showing": "दिखा रहा है",
+    "specialists": "विशेषज्ञ",
+    "in": "में",
+    "sortBy": "क्रमबद्ध करें:",
+    "rating": "रेटिंग",
+    "distance": "दूरी",
+    "reviews": "समीक्षाएं",
+    "available": "उपलब्ध",
+    "busy": "व्यस्त",
+    "offline": "ऑफ़लाइन",
+    "nextAvailable": "अगली उपलब्धता:",
+    "experience": "{{years}} अनुभव",
+    "languages": "भाषाएं:",
+    "videoCall": "वीडियो कॉल उपलब्ध",
+    "bookAppointment": "अपॉइंटमेंट बुक करें",
+    "viewProfile": "प्रोफ़ाइल देखें"
+  },
+  "dashboard": {
+    "title": "स्वास्थ्य डैशबोर्ड",
+    "subtitle": "अपनी स्वास्थ्य यात्रा और विश्लेषण इतिहास ट्रैक करें",
+    "healthScore": "स्वास्थ्य स्कोर",
+    "analyses": "विश्लेषण",
+    "appointments": "अपॉइंटमेंट",
+    "reports": "रिपोर्ट",
+    "healthTrend": "स्वास्थ्य रुझान",
+    "thisMonth": "इस महीने +{{percentage}}%",
+    "symptomCategories": "लक्षण श्रेणियां",
+    "weeklyActivity": "साप्ताहिक गतिविधि",
+    "healthTimeline": "स्वास्थ्य समयरेखा",
+    "quickActions": "त्वरित कार्य",
+    "newAnalysis": "नया विश्लेषण",
+    "exportData": "डेटा निर्यात करें",
+    "categories": {
+      "neurological": "न्यूरोलॉजिकल",
+      "cardiovascular": "हृदय संबंधी",
+      "respiratory": "श्वसन संबंधी",
+      "other": "अन्य"
+    },
+    "timelineTypes": {
+      "appointment": "अपॉइंटमेंट",
+      "report": "रिपोर्ट",
+      "symptom": "लक्षण"
+    }
+  },
+  "errors": {
+    "generic": "कुछ गलत हो गया। कृपया पुनः प्रयास करें।",
+    "network": "नेटवर्क त्रुटि। कृपया अपना कनेक्शन जांचें।",
+    "notFound": "पृष्ठ नहीं मिला",
+    "unauthorized": "आप इस पृष्ठ को देखने के लिए अधिकृत नहीं हैं।",
+    "validation": "कृपया अपना इनपुट जांचें और पुनः प्रयास करें।",
+    "analysisError": "AI विश्लेषण विफल। फ़ॉलबैक सिफारिशों का उपयोग कर रहा है।"
+  },
+  "validation": {
+    "required": "यह फ़ील्ड आवश्यक है",
+    "invalidEmail": "कृपया एक वैध ईमेल पता दर्ज करें",
+    "minLength": "कम से कम {{min}} अक्षर होने चाहिए",
+    "maxLength": "अधिकतम {{max}} अक्षर होने चाहिए"
+  }
+}

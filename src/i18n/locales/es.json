@@ -1,0 +1,234 @@
+{
+  "common": {
+    "appName": "MediMatch",
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "retry": "Intentar de nuevo",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar",
+    "submit": "Enviar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "viewAll": "Ver todo",
+    "learnMore": "Más información",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "add": "Agregar",
+    "remove": "Eliminar",
+    "edit": "Editar",
+    "delete": "Borrar",
+    "download": "Descargar",
+    "export": "Exportar",
+    "selectLanguage": "Seleccionar idioma"
+  },
+  "nav": {
+    "home": "Inicio",
+    "symptoms": "Análisis de Síntomas",
+    "results": "Resultados",
+    "doctors": "Buscar Médicos",
+    "dashboard": "Panel de Control",
+    "startAnalysis": "Iniciar Análisis"
+  },
+  "home": {
+    "tagline": "Navegación de Salud Impulsada por IA",
+    "headline": "Encuentra Tu Especialista Médico Ideal",
+    "subheadline": "Análisis de Síntomas y Emparejamiento con Especialistas Impulsado por IA. Obtén recomendaciones precisas en segundos, no horas.",
+    "startFreeAnalysis": "Iniciar Análisis Gratis",
+    "browseSpecialists": "Explorar Especialistas",
+    "howItWorks": "Cómo Funciona MediMatch",
+    "howItWorksSubtitle": "Nuestra plataforma impulsada por IA revoluciona la forma en que encuentras la atención médica adecuada",
+    "features": {
+      "aiAnalysis": {
+        "title": "Análisis de Síntomas con IA",
+        "description": "Algoritmos avanzados de aprendizaje automático analizan tus síntomas para proporcionar información y recomendaciones precisas."
+      },
+      "instantMatching": {
+        "title": "Emparejamiento Instantáneo con Especialistas",
+        "description": "Nuestro sistema de emparejamiento inteligente te conecta con los especialistas médicos más adecuados en segundos."
+      },
+      "emergencyDetection": {
+        "title": "Detección de Emergencias",
+        "description": "El monitoreo en tiempo real detecta síntomas críticos y proporciona orientación de emergencia inmediata cuando es necesario."
+      }
+    },
+    "stats": {
+      "accuracyRate": "Tasa de Precisión",
+      "patientsMatched": "Pacientes Emparejados",
+      "specialists": "Especialistas",
+      "availability": "Disponibilidad"
+    },
+    "trust": {
+      "hipaaCompliant": "Cumple con HIPAA",
+      "hipaaDesc": "Tus datos siempre están protegidos",
+      "verifiedSpecialists": "Especialistas Verificados",
+      "verifiedDesc": "Todos los médicos están verificados",
+      "available247": "Disponible 24/7",
+      "available247Desc": "Obtén ayuda en cualquier momento"
+    },
+    "cta": {
+      "ready": "¿Listo para Encontrar Tu Pareja Perfecta?",
+      "ctaSubtitle": "Comienza tu análisis de síntomas gratuito ahora y encuentra al especialista adecuado en minutos."
+    },
+    "footer": {
+      "copyright": "© 2024 MediMatch. Navegación de Salud Impulsada por IA."
+    }
+  },
+  "symptoms": {
+    "title": "Análisis de Síntomas",
+    "subtitle": "Describe tus síntomas en detalle para la recomendación de especialista más precisa",
+    "describeSymptoms": "Describe Tus Síntomas",
+    "placeholder": "Cuéntanos qué estás experimentando...",
+    "recording": "Grabando... Habla claramente",
+    "quickAdd": "Agregar Síntomas Rápidos",
+    "age": "Edad",
+    "gender": "Género",
+    "male": "Masculino",
+    "female": "Femenino",
+    "other": "Otro",
+    "medicalHistory": "Historial Médico y Medicamentos",
+    "currentMedications": "Medicamentos Actuales",
+    "addMedication": "Agregar medicamento...",
+    "clickBodyParts": "Haz Clic en las Partes del Cuerpo Afectadas",
+    "view2D": "Vista 2D",
+    "view3D": "Vista 3D",
+    "selectedAreas": "Áreas seleccionadas:",
+    "selectedSymptomType": "Tipo de síntoma seleccionado:",
+    "analyzeButton": "Analizar Síntomas",
+    "analyzingButton": "Analizando...",
+    "symptomTypes": {
+      "pain": "Dolor",
+      "swelling": "Hinchazón",
+      "numbness": "Entumecimiento",
+      "rash": "Erupción"
+    },
+    "quickSymptoms": {
+      "headache": "Dolor de Cabeza",
+      "fever": "Fiebre",
+      "cough": "Tos",
+      "fatigue": "Fatiga",
+      "nausea": "Náuseas",
+      "dizziness": "Mareos",
+      "backPain": "Dolor de Espalda",
+      "chestPain": "Dolor de Pecho",
+      "shortnessOfBreath": "Dificultad para Respirar",
+      "jointPain": "Dolor Articular",
+      "morningStiffness": "Rigidez Matutina",
+      "numbness": "Entumecimiento",
+      "injury": "Lesión",
+      "swelling": "Hinchazón",
+      "abdominalPain": "Dolor Abdominal",
+      "skinRash": "Erupción Cutánea",
+      "itching": "Picazón",
+      "eyePain": "Dolor de Ojos",
+      "blurredVision": "Visión Borrosa",
+      "soreThroat": "Dolor de Garganta",
+      "earPain": "Dolor de Oído",
+      "allergies": "Alergias",
+      "sneezing": "Estornudos",
+      "anxiety": "Ansiedad",
+      "lowMood": "Bajo Ánimo",
+      "sleepProblems": "Problemas de Sueño",
+      "tingling": "Hormigueo",
+      "musclePain": "Dolor Muscular",
+      "heartPalpitations": "Palpitaciones",
+      "urinaryIssues": "Problemas Urinarios",
+      "weightChanges": "Cambios de Peso",
+      "excessiveThirst": "Sed Excesiva"
+    }
+  },
+  "emergency": {
+    "title": "Síntomas de Emergencia Detectados",
+    "message": "Según tus síntomas, podrías estar experimentando una emergencia médica.",
+    "detectedKeywords": "Palabras clave detectadas:",
+    "call911": "Llamar al 911 Ahora",
+    "notEmergency": "Si esto no es una emergencia, puedes cerrar esto y continuar con tu análisis de síntomas."
+  },
+  "results": {
+    "title": "Tus Resultados de Análisis",
+    "subtitle": "Recomendaciones impulsadas por IA basadas en tus síntomas",
+    "urgencyLevel": "Nivel de Urgencia",
+    "primaryRecommendation": "Recomendación Principal",
+    "alternativeSpecialists": "Especialistas Alternativos",
+    "matchPercentage": "{{percentage}}% Coincidencia",
+    "reasoningTitle": "Razonamiento de IA",
+    "governmentSchemes": "Esquemas de Salud del Gobierno",
+    "schemeCoverage": "Cobertura del Esquema",
+    "eligibility": "Elegibilidad",
+    "visitWebsite": "Visitar Sitio Web",
+    "firstMeasures": "Primeras Medidas",
+    "disclaimer": "Esta es una recomendación impulsada por IA y no debe reemplazar el consejo médico profesional. Por favor consulta con un proveedor de atención médica para diagnóstico y tratamiento.",
+    "newAnalysis": "Iniciar Nuevo Análisis",
+    "findDoctors": "Buscar Médicos",
+    "downloadReport": "Descargar Informe",
+    "noSymptoms": "No se encontraron datos de síntomas. Por favor inicia un nuevo análisis.",
+    "urgency": {
+      "low": "Bajo",
+      "moderate": "Moderado",
+      "high": "Alto"
+    }
+  },
+  "doctors": {
+    "title": "Buscar Especialistas",
+    "subtitle": "Explora nuestra red de profesionales de salud verificados",
+    "searchPlaceholder": "Buscar médicos o especialidades...",
+    "allSpecialties": "Todas las Especialidades",
+    "showing": "Mostrando",
+    "specialists": "especialistas",
+    "in": "en",
+    "sortBy": "Ordenar por:",
+    "rating": "Calificación",
+    "distance": "Distancia",
+    "reviews": "Reseñas",
+    "available": "Disponible",
+    "busy": "Ocupado",
+    "offline": "Desconectado",
+    "nextAvailable": "Próxima disponibilidad:",
+    "experience": "{{years}} experiencia",
+    "languages": "Idiomas:",
+    "videoCall": "Videollamada Disponible",
+    "bookAppointment": "Reservar Cita",
+    "viewProfile": "Ver Perfil"
+  },
+  "dashboard": {
+    "title": "Panel de Salud",
+    "subtitle": "Rastrea tu viaje de salud e historial de análisis",
+    "healthScore": "Puntuación de Salud",
+    "analyses": "Análisis",
+    "appointments": "Citas",
+    "reports": "Informes",
+    "healthTrend": "Tendencia de Salud",
+    "thisMonth": "+{{percentage}}% este mes",
+    "symptomCategories": "Categorías de Síntomas",
+    "weeklyActivity": "Actividad Semanal",
+    "healthTimeline": "Línea de Tiempo de Salud",
+    "quickActions": "Acciones Rápidas",
+    "newAnalysis": "Nuevo Análisis",
+    "exportData": "Exportar Datos",
+    "categories": {
+      "neurological": "Neurológico",
+      "cardiovascular": "Cardiovascular",
+      "respiratory": "Respiratorio",
+      "other": "Otro"
+    },
+    "timelineTypes": {
+      "appointment": "Cita",
+      "report": "Informe",
+      "symptom": "Síntoma"
+    }
+  },
+  "errors": {
+    "generic": "Algo salió mal. Por favor intenta de nuevo.",
+    "network": "Error de red. Por favor verifica tu conexión.",
+    "notFound": "Página no encontrada",
+    "unauthorized": "No estás autorizado para ver esta página.",
+    "validation": "Por favor verifica tu entrada e intenta de nuevo.",
+    "analysisError": "El análisis de IA falló. Usando recomendaciones alternativas."
+  },
+  "validation": {
+    "required": "Este campo es requerido",
+    "invalidEmail": "Por favor ingresa un correo electrónico válido",
+    "minLength": "Debe tener al menos {{min}} caracteres",
+    "maxLength": "Debe tener como máximo {{max}} caracteres"
+  }
+}
