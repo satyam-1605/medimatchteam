@@ -47,7 +47,7 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
 
   if (variant === "compact") {
     return (
-      <div ref={dropdownRef} className={`relative ${className}`}>
+        <div ref={dropdownRef} className={`relative z-[9999] ${className}`}>
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -64,7 +64,7 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-40 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50"
+              className="absolute right-0 top-full mt-2 w-40 bg-background border border-border rounded-xl shadow-2xl overflow-hidden z-[9999]"
             >
               {languages.map((lang) => (
                 <button
@@ -88,7 +88,7 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
   }
 
   return (
-    <div ref={dropdownRef} className={`relative ${className}`}>
+    <div ref={dropdownRef} className={`relative z-[9999] ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-foreground"
@@ -105,13 +105,13 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
 
       <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-48 bg-card border border-border rounded-xl shadow-lg overflow-hidden z-50"
-          >
+            <motion.div
+              initial={{ opacity: 0, y: -10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.95 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-0 top-full mt-2 w-48 bg-background border border-border rounded-xl shadow-2xl overflow-hidden z-[9999]"
+            >
             <div className="p-2">
               <p className="px-2 py-1.5 text-xs text-muted-foreground uppercase tracking-wider">
                 {t("common.selectLanguage")}
