@@ -47,15 +47,15 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
 
   if (variant === "compact") {
     return (
-        <div ref={dropdownRef} className={`relative z-[9999] ${className}`}>
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-          aria-label={t("common.selectLanguage")}
-          title={t("common.selectLanguage")}
-        >
-          <Globe className="w-5 h-5" />
-        </button>
+        <div ref={dropdownRef} className={`relative ${className}`}>
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 rounded-lg bg-background/80 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border/50"
+            aria-label={t("common.selectLanguage")}
+            title={t("common.selectLanguage")}
+          >
+            <Globe className="w-5 h-5" />
+          </button>
 
         <AnimatePresence>
           {isOpen && (
@@ -64,19 +64,20 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-40 bg-background border border-border rounded-xl shadow-2xl overflow-hidden z-[9999]"
+              className="absolute right-0 top-full mt-2 w-44 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
+              style={{ zIndex: 99999 }}
             >
               {languages.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
+                  className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
                     i18n.language === lang.code
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground hover:bg-muted"
+                      ? "bg-primary/20 text-primary"
+                      : "text-zinc-200 hover:bg-zinc-800"
                   }`}
                 >
-                  <span>{lang.nativeName}</span>
+                  <span className="font-medium">{lang.nativeName}</span>
                   {i18n.language === lang.code && <Check className="w-4 h-4" />}
                 </button>
               ))}
@@ -88,10 +89,10 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
   }
 
   return (
-    <div ref={dropdownRef} className={`relative z-[9999] ${className}`}>
+    <div ref={dropdownRef} className={`relative ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors text-foreground"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background/80 hover:bg-muted transition-colors text-foreground border border-border/50"
         aria-label={t("common.selectLanguage")}
       >
         <Globe className="w-4 h-4 text-primary" />
@@ -105,32 +106,33 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
 
       <AnimatePresence>
         {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-48 bg-background border border-border rounded-xl shadow-2xl overflow-hidden z-[9999]"
-            >
-            <div className="p-2">
-              <p className="px-2 py-1.5 text-xs text-muted-foreground uppercase tracking-wider">
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            transition={{ duration: 0.15 }}
+            className="absolute right-0 top-full mt-2 w-52 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
+            style={{ zIndex: 99999 }}
+          >
+            <div className="p-2 border-b border-zinc-700">
+              <p className="px-2 py-1.5 text-xs text-zinc-400 uppercase tracking-wider">
                 {t("common.selectLanguage")}
               </p>
             </div>
-            <div className="border-t border-border">
+            <div>
               {languages.map((lang) => (
                 <button
                   key={lang.code}
                   onClick={() => handleLanguageChange(lang.code)}
                   className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-colors ${
                     i18n.language === lang.code
-                      ? "bg-primary/10 text-primary"
-                      : "text-foreground hover:bg-muted"
+                      ? "bg-primary/20 text-primary"
+                      : "text-zinc-200 hover:bg-zinc-800"
                   }`}
                 >
                   <div className="flex flex-col items-start">
                     <span className="font-medium">{lang.nativeName}</span>
-                    <span className="text-xs text-muted-foreground">{lang.name}</span>
+                    <span className="text-xs text-zinc-400">{lang.name}</span>
                   </div>
                   {i18n.language === lang.code && <Check className="w-4 h-4" />}
                 </button>
