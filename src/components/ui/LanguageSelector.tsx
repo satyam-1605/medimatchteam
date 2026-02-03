@@ -17,10 +17,9 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, right: 0 });
 
-  const toggleOpen = (event?: SyntheticEvent) => {
-    // Keep the toggle resilient in case some parent overlays/animations interfere.
-    event?.preventDefault();
-    event?.stopPropagation();
+  const toggleOpen = (event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
     setIsOpen((v) => !v);
   };
 
@@ -129,7 +128,6 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
         <button
           ref={buttonRef}
           type="button"
-          onPointerDown={toggleOpen}
           onClick={toggleOpen}
           className="p-2 rounded-lg bg-background/80 hover:bg-muted transition-colors text-muted-foreground hover:text-foreground border border-border/50"
           aria-label={t("common.selectLanguage")}
@@ -148,7 +146,6 @@ const LanguageSelector = ({ variant = "dropdown", className = "" }: LanguageSele
       <button
         ref={buttonRef}
         type="button"
-        onPointerDown={toggleOpen}
         onClick={toggleOpen}
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background/80 hover:bg-muted transition-colors text-foreground border border-border/50"
         aria-label={t("common.selectLanguage")}
