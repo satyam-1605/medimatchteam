@@ -808,22 +808,32 @@ const Results = () => {
                 <div className="grid md:grid-cols-2 gap-4">
                   {results.alternatives.slice(0, 4).map((alt, index) => {
                     const AltIcon = alt.icon;
+                    // Get matching AI alternative for reasoning
+                    const aiAlt = useAI && aiAnalysis?.alternatives?.find(
+                      a => a.specialty.toLowerCase().includes(alt.specialty.toLowerCase().split(' ')[0]) ||
+                           alt.specialty.toLowerCase().includes(a.specialty.toLowerCase().split(' ')[0])
+                    );
+                    const reasoning = aiAlt?.reasoning || alt.description;
+                    
                     return (
                       <motion.div
                         key={alt.specialty}
-                        className="group relative rounded-xl bg-card border border-border p-5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer"
+                        className="group relative rounded-xl bg-card border border-border p-5 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 + index * 0.05 }}
                         whileHover={{ y: -2 }}
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                        <div className="flex items-start gap-4">
+                          <div className="w-14 h-14 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
                             <AltIcon className="w-7 h-7 text-primary" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold text-foreground truncate">{alt.specialty}</h4>
-                            <div className="flex items-center gap-2 mt-1">
+                            <div className="flex items-center justify-between gap-2">
+                              <h4 className="font-semibold text-foreground truncate">{alt.specialty}</h4>
+                              <span className="text-xs font-medium text-primary whitespace-nowrap">{alt.matchPercentage}%</span>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2">
                               <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                                 <motion.div
                                   className="h-full bg-primary rounded-full"
@@ -832,10 +842,23 @@ const Results = () => {
                                   transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
                                 />
                               </div>
-                              <span className="text-xs font-medium text-primary">{alt.matchPercentage}%</span>
                             </div>
+                            {/* Reasoning */}
+                            <p className="text-xs text-muted-foreground mt-3 leading-relaxed line-clamp-3">
+                              {reasoning}
+                            </p>
+                            {/* Age-specific considerations if using AI */}
+                            {useAI && aiAnalysis?.ageSpecificConsiderations && (
+                              <div className="mt-3 pt-3 border-t border-border/50">
+                                <div className="flex items-start gap-2">
+                                  <User className="w-3.5 h-3.5 text-accent-foreground mt-0.5 flex-shrink-0" />
+                                  <p className="text-xs text-accent-foreground/80 leading-relaxed line-clamp-2">
+                                    <span className="font-medium">Age consideration:</span> {aiAnalysis.ageSpecificConsiderations}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                         </div>
                       </motion.div>
                     );
