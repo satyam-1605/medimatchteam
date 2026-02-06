@@ -1,88 +1,38 @@
 /**
- * First-measures suggestions: calls a free LLM API (Groq) when API key is set,
- * otherwise returns rule-based fallback tips from symptom keywords.
+ * First-measures suggestions: calls Lovable AI via edge function,
+ * with rule-based fallback tips when API fails.
  */
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-const GROQ_MODEL = "llama-3.1-8b-instant";
-
-function getApiKey(): string | undefined {
-  return import.meta.env.VITE_GROQ_API_KEY as string | undefined;
-}
-
-function buildSymptomSummary(symptomsText: string, quickSymptoms: string[]): string {
-  const parts: string[] = [];
-  if (symptomsText.trim()) parts.push(symptomsText.trim());
-  if (quickSymptoms.length) parts.push(quickSymptoms.join(", "));
-  return parts.length ? parts.join(". Selected symptoms: ") : "General wellness check.";
-}
+import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Call Groq (free tier) to get first-measures suggestions. Returns null if no API key or on error.
- * Falls back gracefully when API key is missing, invalid, or API fails.
+ * Call edge function to get AI-powered first-measures suggestions.
+ * Falls back gracefully on any error.
  */
 export async function getFirstMeasuresFromLLM(
   symptomsText: string,
   quickSymptoms: string[]
 ): Promise<{ text: string } | { error: string }> {
-  const apiKey = getApiKey();
-  
-  // Skip API call if no key configured
-  if (!apiKey?.trim()) {
-    console.log("[FirstMeasures] No API key configured, using fallback");
-    return { error: "NO_API_KEY" };
-  }
-
-  // Skip if key looks like a placeholder or is too short
-  if (apiKey.length < 20 || apiKey.includes("your_") || apiKey.includes("xxx")) {
-    console.log("[FirstMeasures] API key appears to be placeholder, using fallback");
-    return { error: "INVALID_API_KEY" };
-  }
-
-  const symptomSummary = buildSymptomSummary(symptomsText, quickSymptoms);
-  const prompt = `You are a helpful health assistant. The user has reported these symptoms: "${symptomSummary}"
-
-Give 4 to 5 brief, safety-first measures the person should take at home before seeing a doctor. Use simple language. If any symptom suggests an emergency (e.g. chest pain, severe shortness of breath), say so clearly first. Format as a short numbered list. Do not diagnose. Keep total response under 200 words.`;
-
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
-    const res = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        messages: [
-          { role: "system", content: "You give brief, safety-first at-home first measures. No diagnosis. Short numbered lists." },
-          { role: "user", content: prompt },
-        ],
-        max_tokens: 400,
-        temperature: 0.3,
-      }),
-      signal: controller.signal,
+    const { data, error } = await supabase.functions.invoke("first-measures", {
+      body: { symptomsText, quickSymptoms },
     });
 
-    clearTimeout(timeoutId);
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => res.statusText);
-      console.warn(`[FirstMeasures] API error ${res.status}: ${errText}`);
-      return { error: res.status === 401 || res.status === 403 ? "INVALID_API_KEY" : errText || res.statusText };
+    if (error) {
+      console.warn("[FirstMeasures] Edge function error:", error.message);
+      return { error: error.message };
     }
 
-    const data = (await res.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = data.choices?.[0]?.message?.content?.trim();
-    if (!content) {
-      console.warn("[FirstMeasures] Empty response from API");
-      return { error: "Empty response" };
+    if (data?.error) {
+      console.warn("[FirstMeasures] API returned error:", data.error);
+      return { error: data.error };
     }
-    return { text: content };
+
+    if (data?.text) {
+      return { text: data.text };
+    }
+
+    return { error: "No response from AI" };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
     console.warn("[FirstMeasures] Fetch error:", message);
@@ -91,7 +41,7 @@ Give 4 to 5 brief, safety-first measures the person should take at home before s
 }
 
 /**
- * Rule-based fallback first measures when no LLM API key is set.
+ * Rule-based fallback first measures when AI is unavailable.
  * Uses symptom keywords to suggest generic, safety-first tips.
  */
 export function getFallbackFirstMeasures(
