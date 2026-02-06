@@ -19,14 +19,24 @@ function buildSymptomSummary(symptomsText: string, quickSymptoms: string[]): str
 
 /**
  * Call Groq (free tier) to get first-measures suggestions. Returns null if no API key or on error.
+ * Falls back gracefully when API key is missing, invalid, or API fails.
  */
 export async function getFirstMeasuresFromLLM(
   symptomsText: string,
   quickSymptoms: string[]
 ): Promise<{ text: string } | { error: string }> {
   const apiKey = getApiKey();
+  
+  // Skip API call if no key configured
   if (!apiKey?.trim()) {
+    console.log("[FirstMeasures] No API key configured, using fallback");
     return { error: "NO_API_KEY" };
+  }
+
+  // Skip if key looks like a placeholder or is too short
+  if (apiKey.length < 20 || apiKey.includes("your_") || apiKey.includes("xxx")) {
+    console.log("[FirstMeasures] API key appears to be placeholder, using fallback");
+    return { error: "INVALID_API_KEY" };
   }
 
   const symptomSummary = buildSymptomSummary(symptomsText, quickSymptoms);
@@ -35,6 +45,9 @@ export async function getFirstMeasuresFromLLM(
 Give 4 to 5 brief, safety-first measures the person should take at home before seeing a doctor. Use simple language. If any symptom suggests an emergency (e.g. chest pain, severe shortness of breath), say so clearly first. Format as a short numbered list. Do not diagnose. Keep total response under 200 words.`;
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const res = await fetch(GROQ_API_URL, {
       method: "POST",
       headers: {
@@ -50,21 +63,29 @@ Give 4 to 5 brief, safety-first measures the person should take at home before s
         max_tokens: 400,
         temperature: 0.3,
       }),
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
-      const err = await res.text();
-      return { error: res.status === 401 ? "INVALID_API_KEY" : err || res.statusText };
+      const errText = await res.text().catch(() => res.statusText);
+      console.warn(`[FirstMeasures] API error ${res.status}: ${errText}`);
+      return { error: res.status === 401 || res.status === 403 ? "INVALID_API_KEY" : errText || res.statusText };
     }
 
     const data = (await res.json()) as {
       choices?: Array<{ message?: { content?: string } }>;
     };
     const content = data.choices?.[0]?.message?.content?.trim();
-    if (!content) return { error: "Empty response" };
+    if (!content) {
+      console.warn("[FirstMeasures] Empty response from API");
+      return { error: "Empty response" };
+    }
     return { text: content };
   } catch (e) {
     const message = e instanceof Error ? e.message : "Network error";
+    console.warn("[FirstMeasures] Fetch error:", message);
     return { error: message };
   }
 }
