@@ -847,15 +847,25 @@ const Results = () => {
                             <p className="text-xs text-muted-foreground mt-3 leading-relaxed line-clamp-3">
                               {reasoning}
                             </p>
-                            {/* Age-specific considerations if using AI */}
-                            {useAI && aiAnalysis?.ageSpecificConsiderations && (
-                              <div className="mt-3 pt-3 border-t border-border/50">
-                                <div className="flex items-start gap-2">
-                                  <User className="w-3.5 h-3.5 text-accent-foreground mt-0.5 flex-shrink-0" />
-                                  <p className="text-xs text-accent-foreground/80 leading-relaxed line-clamp-2">
-                                    <span className="font-medium">Age consideration:</span> {aiAnalysis.ageSpecificConsiderations}
-                                  </p>
-                                </div>
+                            {/* Age & Gender specific considerations if using AI */}
+                            {useAI && (aiAnalysis?.ageSpecificConsiderations || aiAnalysis?.genderSpecificConsiderations) && (
+                              <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
+                                {aiAnalysis?.ageSpecificConsiderations && (
+                                  <div className="flex items-start gap-2">
+                                    <User className="w-3.5 h-3.5 text-accent-foreground mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-accent-foreground/80 leading-relaxed line-clamp-2">
+                                      <span className="font-medium">Age:</span> {aiAnalysis.ageSpecificConsiderations}
+                                    </p>
+                                  </div>
+                                )}
+                                {aiAnalysis?.genderSpecificConsiderations && (
+                                  <div className="flex items-start gap-2">
+                                    <User className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
+                                    <p className="text-xs text-primary/80 leading-relaxed line-clamp-2">
+                                      <span className="font-medium">Gender:</span> {aiAnalysis.genderSpecificConsiderations}
+                                    </p>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
