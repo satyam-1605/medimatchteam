@@ -853,7 +853,7 @@ const Results = () => {
                                 {aiAnalysis?.ageSpecificConsiderations && (
                                   <div className="flex items-start gap-2">
                                     <User className="w-3.5 h-3.5 text-accent-foreground mt-0.5 flex-shrink-0" />
-                                    <p className="text-xs text-accent-foreground/80 leading-relaxed line-clamp-2">
+                                    <p className="text-xs text-accent-foreground/80 leading-relaxed">
                                       <span className="font-medium">Age:</span> {aiAnalysis.ageSpecificConsiderations}
                                     </p>
                                   </div>
@@ -861,7 +861,7 @@ const Results = () => {
                                 {aiAnalysis?.genderSpecificConsiderations && (
                                   <div className="flex items-start gap-2">
                                     <User className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
-                                    <p className="text-xs text-primary/80 leading-relaxed line-clamp-2">
+                                    <p className="text-xs text-primary/80 leading-relaxed">
                                       <span className="font-medium">Gender:</span> {aiAnalysis.genderSpecificConsiderations}
                                     </p>
                                   </div>
