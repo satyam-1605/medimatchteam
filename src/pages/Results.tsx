@@ -878,66 +878,122 @@ const Results = () => {
 
               {/* AI Insights Section */}
               {useAI && aiAnalysis && (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Differential Diagnosis */}
-                  {aiAnalysis.differentialDiagnosis.length > 0 && (
-                    <motion.div
-                      className="rounded-xl bg-card border border-border p-6"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.35 }}
-                    >
-                      <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                        <FlaskConical className="w-5 h-5 text-primary" />
-                        Possible Conditions
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">AI</span>
-                      </h3>
-                      <div className="space-y-2">
-                        {aiAnalysis.differentialDiagnosis.slice(0, 5).map((diagnosis, index) => (
-                          <motion.div
-                            key={index}
-                            className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 + index * 0.05 }}
-                          >
-                            <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-bold text-primary">{index + 1}</span>
-                            </div>
-                            <span className="text-sm text-foreground">{diagnosis}</span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {/* Differential Diagnosis */}
+                    {aiAnalysis.differentialDiagnosis.length > 0 && (
+                      <motion.div
+                        className="rounded-xl bg-card border border-border p-6"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 }}
+                      >
+                        <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                          <FlaskConical className="w-5 h-5 text-primary" />
+                          Possible Conditions
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">AI</span>
+                        </h3>
+                        <div className="space-y-2">
+                          {aiAnalysis.differentialDiagnosis.slice(0, 5).map((diagnosis, index) => (
+                            <motion.div
+                              key={index}
+                              className="flex items-center gap-3 p-3 rounded-lg bg-muted/30"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.4 + index * 0.05 }}
+                            >
+                              <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                                <span className="text-xs font-bold text-primary">{index + 1}</span>
+                              </div>
+                              <span className="text-sm text-foreground">{diagnosis}</span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
 
-                  {/* Next Steps */}
-                  {aiAnalysis.nextSteps.length > 0 && (
+                    {/* Next Steps */}
+                    {aiAnalysis.nextSteps.length > 0 && (
+                      <motion.div
+                        className="rounded-xl bg-card border border-border p-6"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
+                        <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-success" />
+                          Recommended Next Steps
+                        </h3>
+                        <div className="space-y-2">
+                          {aiAnalysis.nextSteps.slice(0, 5).map((step, index) => (
+                            <motion.div
+                              key={index}
+                              className="flex items-start gap-3"
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.45 + index * 0.05 }}
+                            >
+                              <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <CheckCircle2 className="w-3 h-3 text-success" />
+                              </div>
+                              <p className="text-sm text-muted-foreground">{step}</p>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  {/* Age & Gender Specific Considerations */}
+                  {(aiAnalysis.ageSpecificConsiderations || aiAnalysis.genderSpecificConsiderations) && (
                     <motion.div
-                      className="rounded-xl bg-card border border-border p-6"
+                      className="rounded-xl bg-gradient-to-br from-accent/10 via-card to-primary/5 border border-accent/20 p-6"
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 }}
+                      transition={{ delay: 0.45 }}
                     >
                       <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-                        <CheckCircle2 className="w-5 h-5 text-success" />
-                        Recommended Next Steps
+                        <User className="w-5 h-5 text-accent-foreground" />
+                        Personalized Health Considerations
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">AI</span>
                       </h3>
-                      <div className="space-y-2">
-                        {aiAnalysis.nextSteps.slice(0, 5).map((step, index) => (
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {aiAnalysis.ageSpecificConsiderations && (
                           <motion.div
-                            key={index}
-                            className="flex items-start gap-3"
+                            className="p-4 rounded-lg bg-card/50 border border-border/50"
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.45 + index * 0.05 }}
+                            transition={{ delay: 0.5 }}
                           >
-                            <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                              <CheckCircle2 className="w-3 h-3 text-success" />
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                <Clock className="w-4 h-4 text-primary" />
+                              </div>
+                              <h4 className="font-medium text-foreground text-sm">Age-Specific Insights</h4>
                             </div>
-                            <p className="text-sm text-muted-foreground">{step}</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {aiAnalysis.ageSpecificConsiderations}
+                            </p>
                           </motion.div>
-                        ))}
+                        )}
+                        {aiAnalysis.genderSpecificConsiderations && (
+                          <motion.div
+                            className="p-4 rounded-lg bg-card/50 border border-border/50"
+                            initial={{ opacity: 0, x: 10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.55 }}
+                          >
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                                <User className="w-4 h-4 text-accent-foreground" />
+                              </div>
+                              <h4 className="font-medium text-foreground text-sm">Gender-Specific Insights</h4>
+                            </div>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {aiAnalysis.genderSpecificConsiderations}
+                            </p>
+                          </motion.div>
+                        )}
                       </div>
                     </motion.div>
                   )}
