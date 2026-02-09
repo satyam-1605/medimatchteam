@@ -1,14 +1,15 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
-  Filter,
   MapPin,
-  Grid,
-  List,
   Star,
   Clock,
-  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Stethoscope,
+  Users,
+  Zap,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
@@ -97,9 +98,12 @@ const mockDoctors: Doctor[] = [
 const DoctorDirectory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("rating");
-  const [showFilters, setShowFilters] = useState(false);
+  const pillsRef = useRef<HTMLDivElement>(null);
+
+  const scrollPills = (dir: "left" | "right") => {
+    pillsRef.current?.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
+  };
 
   const filteredDoctors = mockDoctors.filter((doctor) => {
     const matchesSearch =
@@ -113,171 +117,191 @@ const DoctorDirectory = () => {
 
   const sortedDoctors = [...filteredDoctors].sort((a, b) => {
     if (sortBy === "rating") return b.rating - a.rating;
-    if (sortBy === "distance")
-      return parseFloat(a.distance) - parseFloat(b.distance);
+    if (sortBy === "distance") return parseFloat(a.distance) - parseFloat(b.distance);
     if (sortBy === "reviews") return b.reviews - a.reviews;
     return 0;
   });
+
+  const availableCount = mockDoctors.filter((d) => d.availability === "available").length;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <ParticleBackground />
 
-      <main className="pt-24 pb-12 px-4">
+      <main className="pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-7xl">
-          {/* Header */}
+
+          {/* Hero header */}
           <motion.div
-            className="text-center mb-8"
+            className="text-center mb-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-3xl md:text-4xl font-display font-bold mb-4">
-              <span className="headline-gradient">Find Specialists</span>
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-5">
+              <Zap className="w-3.5 h-3.5" />
+              AI-Matched Specialists Near You
+            </div>
+            <h1 className="text-4xl md:text-5xl font-display font-bold mb-3">
+              <span className="headline-gradient">Find Your Doctor</span>
             </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Browse our network of verified healthcare professionals
+            <p className="text-muted-foreground max-w-xl mx-auto text-base">
+              Browse our verified network of healthcare professionals — book instantly or start a video call.
             </p>
+
+            {/* Stats */}
+            <div className="flex items-center justify-center gap-8 mt-6">
+              {[
+                { icon: Users, label: "Specialists", value: mockDoctors.length },
+                { icon: Stethoscope, label: "Specialties", value: specialties.length - 1 },
+                { icon: Zap, label: "Available Now", value: availableCount },
+              ].map((stat) => (
+                <div key={stat.label} className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <stat.icon className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-lg font-bold text-foreground leading-none">{stat.value}</p>
+                    <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Search and Filters */}
+          {/* Search bar */}
           <motion.div
-            className="glass-panel p-4 mb-8"
-            initial={{ opacity: 0, y: 20 }}
+            className="max-w-2xl mx-auto mb-6"
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <div className="flex flex-col lg:flex-row gap-4">
-              {/* Search */}
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search doctors or specialties..."
-                  className="w-full pl-12 pr-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-              </div>
-
-              {/* Specialty Filter */}
-              <div className="relative">
-                <select
-                  value={selectedSpecialty}
-                  onChange={(e) => setSelectedSpecialty(e.target.value)}
-                  className="appearance-none w-full lg:w-48 px-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground focus:outline-none focus:border-primary cursor-pointer"
-                >
-                  {specialties.map((spec) => (
-                    <option key={spec} value={spec}>
-                      {spec}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              </div>
-
-              {/* View Toggle */}
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-3 rounded-xl transition-all ${
-                    viewMode === "grid"
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Grid className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-3 rounded-xl transition-all ${
-                    viewMode === "list"
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <List className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Sort Options */}
-            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-border">
-              <span className="text-sm text-muted-foreground">Sort by:</span>
-              <div className="flex gap-2">
-                {[
-                  { value: "rating", icon: Star, label: "Rating" },
-                  { value: "distance", icon: MapPin, label: "Distance" },
-                  { value: "reviews", icon: Clock, label: "Reviews" },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSortBy(option.value)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-all ${
-                      sortBy === option.value
-                        ? "bg-primary/20 text-primary"
-                        : "bg-muted text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <option.icon className="w-3.5 h-3.5" />
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+            <div className="relative">
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, specialty, or condition..."
+                className="w-full pl-14 pr-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm"
+              />
             </div>
           </motion.div>
 
-          {/* Results Count */}
+          {/* Specialty pills */}
           <motion.div
-            className="mb-6"
+            className="relative mb-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.15 }}
+          >
+            <button
+              onClick={() => scrollPills("left")}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shadow-lg"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div
+              ref={pillsRef}
+              className="flex gap-2 overflow-x-auto scrollbar-hide px-10 py-1"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {specialties.map((spec) => (
+                <button
+                  key={spec}
+                  onClick={() => setSelectedSpecialty(spec)}
+                  className={`whitespace-nowrap px-4 py-2 rounded-full text-xs font-medium border transition-all duration-200 flex-shrink-0 ${
+                    selectedSpecialty === spec
+                      ? "bg-primary/20 border-primary text-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]"
+                      : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
+                  }`}
+                >
+                  {spec}
+                </button>
+              ))}
+            </div>
+            <button
+              onClick={() => scrollPills("right")}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shadow-lg"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </motion.div>
+
+          {/* Toolbar: count + sort */}
+          <motion.div
+            className="flex items-center justify-between mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <p className="text-muted-foreground">
-              Showing{" "}
-              <span className="text-foreground font-medium">
-                {sortedDoctors.length}
-              </span>{" "}
-              specialists
+            <p className="text-sm text-muted-foreground">
+              <span className="text-foreground font-semibold">{sortedDoctors.length}</span> specialist{sortedDoctors.length !== 1 && "s"}
               {selectedSpecialty !== "All Specialties" && (
-                <span>
-                  {" "}
-                  in <span className="text-primary">{selectedSpecialty}</span>
-                </span>
+                <span> in <span className="text-primary font-medium">{selectedSpecialty}</span></span>
               )}
             </p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-muted-foreground mr-1">Sort:</span>
+              {[
+                { value: "rating", icon: Star, label: "Rating" },
+                { value: "distance", icon: MapPin, label: "Distance" },
+                { value: "reviews", icon: Clock, label: "Reviews" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    sortBy === option.value
+                      ? "bg-primary/15 text-primary"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <option.icon className="w-3 h-3" />
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </motion.div>
 
-          {/* Doctor Grid/List */}
-          <div
-            className={`grid gap-6 ${
-              viewMode === "grid"
-                ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                : "grid-cols-1"
-            }`}
-          >
-            {sortedDoctors.map((doctor, index) => (
-              <DoctorCard key={doctor.id} doctor={doctor} index={index} />
-            ))}
-          </div>
+          {/* Doctor Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedSpecialty + sortBy}
+              className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              {sortedDoctors.map((doctor, index) => (
+                <DoctorCard key={doctor.id} doctor={doctor} index={index} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Empty State */}
           {sortedDoctors.length === 0 && (
             <motion.div
-              className="text-center py-16"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              className="text-center py-20"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
             >
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                <Search className="w-10 h-10 text-muted-foreground" />
+              <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-muted flex items-center justify-center">
+                <Search className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                No doctors found
+              <h3 className="text-lg font-semibold text-foreground mb-1">
+                No specialists found
               </h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filters
+              <p className="text-sm text-muted-foreground mb-4">
+                Try a different search term or specialty filter
               </p>
+              <button
+                onClick={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); }}
+                className="text-sm text-primary hover:underline font-medium"
+              >
+                Clear all filters
+              </button>
             </motion.div>
           )}
         </div>
