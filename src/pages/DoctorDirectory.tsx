@@ -104,7 +104,7 @@ const mockDoctors: Doctor[] = [
 ];
 
 function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 3958.8; // miles
+  const R = 6371; // km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLng = ((lng2 - lng1) * Math.PI) / 180;
   const a =
@@ -123,7 +123,12 @@ const DoctorDirectory = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "granted" | "denied">("idle");
   const [locationName, setLocationName] = useState("Detecting location...");
-  const [maxDistance, setMaxDistance] = useState<number>(10); // miles
+  const [maxDistance, setMaxDistance] = useState<number>(25); // km
+  const [manualLocationQuery, setManualLocationQuery] = useState("");
+  const [locationSuggestions, setLocationSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [locationSource, setLocationSource] = useState<"gps" | "manual">("gps");
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pillsRef = useRef<HTMLDivElement>(null);
 
   const scrollPills = (dir: "left" | "right") => {
@@ -142,6 +147,7 @@ const DoctorDirectory = () => {
         const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setUserLocation(loc);
         setLocationStatus("granted");
+        setLocationSource("gps");
         setLocationName(`${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`);
         // Reverse geocode
         fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.lat}&lon=${loc.lng}&format=json`)
@@ -168,11 +174,45 @@ const DoctorDirectory = () => {
     detectLocation();
   }, [detectLocation]);
 
+  const searchLocation = useCallback((query: string) => {
+    setManualLocationQuery(query);
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    if (query.length < 2) {
+      setLocationSuggestions([]);
+      return;
+    }
+    setIsSearchingLocation(true);
+    searchTimeoutRef.current = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`)
+        .then((r) => r.json())
+        .then((data) => {
+          setLocationSuggestions(data || []);
+          setIsSearchingLocation(false);
+        })
+        .catch(() => {
+          setLocationSuggestions([]);
+          setIsSearchingLocation(false);
+        });
+    }, 300);
+  }, []);
+
+  const selectLocation = useCallback((suggestion: { display_name: string; lat: string; lon: string }) => {
+    const loc = { lat: parseFloat(suggestion.lat), lng: parseFloat(suggestion.lon) };
+    setUserLocation(loc);
+    setLocationStatus("granted");
+    setLocationSource("manual");
+    // Show short name
+    const parts = suggestion.display_name.split(",");
+    setLocationName(parts.slice(0, 2).join(",").trim());
+    setManualLocationQuery("");
+    setLocationSuggestions([]);
+  }, []);
+
   // Compute real distances if location is available
   const doctorsWithDistance = mockDoctors.map((doc) => {
     if (userLocation) {
       const dist = haversineDistance(userLocation.lat, userLocation.lng, doc.lat, doc.lng);
-      return { ...doc, distance: `${dist.toFixed(1)} mi`, _distanceNum: dist };
+      return { ...doc, distance: `${dist.toFixed(1)} km`, _distanceNum: dist };
     }
     return { ...doc, _distanceNum: parseFloat(doc.distance) };
   });
@@ -278,6 +318,13 @@ const DoctorDirectory = () => {
                   <p className="text-xs text-muted-foreground">Your Location</p>
                   <p className="text-sm font-medium text-foreground truncate">{locationName}</p>
                 </div>
+                {locationStatus === "granted" && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                    locationSource === "gps" ? "bg-success/15 text-success" : "bg-primary/15 text-primary"
+                  }`}>
+                    {locationSource === "gps" ? "GPS" : "Manual"}
+                  </span>
+                )}
                 {locationStatus !== "loading" && (
                   <button
                     onClick={detectLocation}
@@ -289,11 +336,42 @@ const DoctorDirectory = () => {
                 )}
               </div>
 
+              {/* Manual location search */}
+              <div className="relative flex-1 min-w-0 sm:max-w-xs">
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={manualLocationQuery}
+                    onChange={(e) => searchLocation(e.target.value)}
+                    placeholder="Search a city or place..."
+                    className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-xs"
+                  />
+                  {isSearchingLocation && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  )}
+                </div>
+                {locationSuggestions.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-border rounded-xl shadow-xl overflow-hidden">
+                    {locationSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        onClick={() => selectLocation(s)}
+                        className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-primary/10 transition-colors border-b border-border/50 last:border-b-0 truncate"
+                      >
+                        <MapPin className="w-3 h-3 inline mr-1.5 text-primary" />
+                        {s.display_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Distance radius */}
               <div className="flex items-center gap-3 flex-shrink-0">
                 <span className="text-xs text-muted-foreground whitespace-nowrap">Radius:</span>
                 <div className="flex gap-1">
-                  {[2, 5, 10, 25, 50].map((d) => (
+                  {[5, 10, 25, 50, 100].map((d) => (
                     <button
                       key={d}
                       onClick={() => setMaxDistance(d)}
@@ -303,7 +381,7 @@ const DoctorDirectory = () => {
                           : "text-muted-foreground hover:text-foreground hover:bg-muted border border-transparent"
                       }`}
                     >
-                      {d} mi
+                      {d} km
                     </button>
                   ))}
                 </div>
@@ -404,7 +482,7 @@ const DoctorDirectory = () => {
               {selectedSpecialty !== "All Specialties" && (
                 <span> in <span className="text-primary font-medium">{selectedSpecialty}</span></span>
               )}
-              <span className="text-muted-foreground"> within {maxDistance} mi</span>
+              <span className="text-muted-foreground"> within {maxDistance} km</span>
             </p>
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-muted-foreground mr-1">Sort:</span>
@@ -484,7 +562,7 @@ const DoctorDirectory = () => {
                 Try increasing the radius or changing filters
               </p>
               <button
-                onClick={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(50); }}
+                onClick={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }}
                 className="text-sm text-primary hover:underline font-medium"
               >
                 Clear all filters
