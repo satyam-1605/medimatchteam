@@ -316,6 +316,28 @@ const DoctorDirectory = () => {
     nextSlot: d.nextSlot,
   }));
 
+  // Filter scheme doctors by specialty, search, and distance
+  const filteredSchemeDoctors = schemeDoctors
+    .map((d) => {
+      if (userLocation) {
+        const dist = haversineDistance(userLocation.lat, userLocation.lng, d.hospital.latitude, d.hospital.longitude);
+        return { ...d, distance: dist };
+      }
+      return d;
+    })
+    .filter((d) => {
+      const matchesSearch =
+        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.specialization.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.hospital.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSpecialty =
+        selectedSpecialty === "All Specialties" ||
+        d.specialization === selectedSpecialty;
+      const matchesDistance = d.distance === undefined || d.distance <= maxDistance;
+      return matchesSearch && matchesSpecialty && matchesDistance;
+    })
+    .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
