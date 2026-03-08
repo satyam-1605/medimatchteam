@@ -22,6 +22,8 @@ export interface SchemeInfo {
   eligibility: string | null;
   official_url: string | null;
   description: string | null;
+  is_national?: boolean;
+  state?: string;
 }
 
 export interface SchemeDoctor {
