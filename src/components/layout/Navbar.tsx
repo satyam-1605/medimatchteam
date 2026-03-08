@@ -80,13 +80,6 @@ const Navbar = () => {
                     <CalendarCheck className="w-4 h-4" />
                   </button>
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  {t("common.logout")}
-                </button>
               </>
             ) : (
               <Link to="/auth">
