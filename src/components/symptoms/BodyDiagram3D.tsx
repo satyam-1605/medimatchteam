@@ -249,6 +249,8 @@ function BodyPartMesh({
   const isOrganPart = ["heart", "lungs", "liver", "stomach", "kidneys", "spine"].includes(partId);
   const shouldShow = layer !== "organ" || isOrganPart || isOrganView;
   
+  if (!shouldShow && layer === "organ") return null;
+
   // Build geometry based on shape type
   const geometry = useMemo(() => {
     const [sx, sy, sz] = size;
@@ -316,7 +318,6 @@ function BodyPartMesh({
         </Html>
       )}
     </mesh>
-  );
   );
 }
 
