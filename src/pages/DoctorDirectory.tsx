@@ -345,7 +345,10 @@ const DoctorDirectory = () => {
         selectedSpecialty === "All Specialties" ||
         d.specialization === selectedSpecialty;
       const matchesDistance = d.distance === undefined || d.distance <= maxDistance;
-      return matchesSearch && matchesSpecialty && matchesDistance;
+      const matchesScheme =
+        selectedSchemeFilter === "all" ||
+        d.schemes.some((s) => s.short_name === selectedSchemeFilter);
+      return matchesSearch && matchesSpecialty && matchesDistance && matchesScheme;
     })
     .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
