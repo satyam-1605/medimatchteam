@@ -136,8 +136,11 @@ const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
 
         {/* Dynamic scheme list with expandable details */}
         <div className="space-y-2 mb-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Accepted Schemes</p>
-          {doctor.schemes.map((s) => {
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Accepted Schemes ({doctor.schemes.length})
+          </p>
+          {/* Central schemes first, then state */}
+          {[...doctor.schemes].sort((a, b) => (b.is_national ? 1 : 0) - (a.is_national ? 1 : 0)).map((s) => {
             const isExpanded = expandedScheme === s.short_name;
             return (
               <div key={s.short_name} className="rounded-lg border border-border/50 overflow-hidden">
