@@ -61,9 +61,11 @@ export type Database = {
           coverage: string | null
           created_at: string
           description: string | null
+          eligibility: string | null
           id: string
           is_national: boolean
           name: string
+          official_url: string | null
           short_name: string
           state: string
         }
@@ -71,9 +73,11 @@ export type Database = {
           coverage?: string | null
           created_at?: string
           description?: string | null
+          eligibility?: string | null
           id?: string
           is_national?: boolean
           name: string
+          official_url?: string | null
           short_name: string
           state: string
         }
@@ -81,9 +85,11 @@ export type Database = {
           coverage?: string | null
           created_at?: string
           description?: string | null
+          eligibility?: string | null
           id?: string
           is_national?: boolean
           name?: string
+          official_url?: string | null
           short_name?: string
           state?: string
         }
