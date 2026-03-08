@@ -195,6 +195,9 @@ const DoctorDirectory = () => {
             if (data.address) {
               const parts = [data.address.suburb || data.address.neighbourhood, data.address.city || data.address.town, data.address.state].filter(Boolean);
               setLocationName(parts.join(", ") || `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`);
+              if (data.address.state) {
+                setUserState(data.address.state);
+              }
             }
           })
           .catch(() => {});
