@@ -37,6 +37,24 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Reset failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Check your email", description: "We sent you a password reset link." });
+      setForgotMode(false);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -97,35 +115,73 @@ const Auth = () => {
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={signInEmail}
-                    onChange={(e) => setSignInEmail(e.target.value)}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={signInPassword}
-                    onChange={(e) => setSignInPassword(e.target.value)}
-                    required
-                    className="pl-10"
-                  />
-                </div>
-                <button type="submit" className="w-full">
-                  <GlowButton className="w-full pointer-events-none" disabled={loading}>
-                    {loading ? "Signing in..." : "Sign In"}
-                  </GlowButton>
-                </button>
-              </form>
+              {forgotMode ? (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    Enter your email and we'll send you a reset link.
+                  </p>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      required
+                      className="pl-10"
+                    />
+                  </div>
+                  <button type="submit" className="w-full">
+                    <GlowButton className="w-full pointer-events-none" disabled={loading}>
+                      {loading ? "Sending..." : "Send Reset Link"}
+                    </GlowButton>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForgotMode(false)}
+                    className="w-full text-sm text-primary hover:underline"
+                  >
+                    Back to Sign In
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={signInEmail}
+                      onChange={(e) => setSignInEmail(e.target.value)}
+                      required
+                      className="pl-10"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      type="password"
+                      placeholder="Password"
+                      value={signInPassword}
+                      onChange={(e) => setSignInPassword(e.target.value)}
+                      required
+                      className="pl-10"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setForgotMode(true)}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                  <button type="submit" className="w-full">
+                    <GlowButton className="w-full pointer-events-none" disabled={loading}>
+                      {loading ? "Signing in..." : "Sign In"}
+                    </GlowButton>
+                  </button>
+                </form>
+              )}
             </TabsContent>
 
             <TabsContent value="signup">
