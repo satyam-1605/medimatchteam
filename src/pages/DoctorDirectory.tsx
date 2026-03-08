@@ -138,6 +138,9 @@ const DoctorDirectory = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
   const [sortBy, setSortBy] = useState("rating");
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
+  const [showSchemeOnly, setShowSchemeOnly] = useState(false);
+  const [schemeDoctors, setSchemeDoctors] = useState<SchemeDoctor[]>([]);
+  const [schemeDoctorsLoading, setSchemeDoctorsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "granted" | "denied">("idle");
   const [locationName, setLocationName] = useState("Detecting location...");
