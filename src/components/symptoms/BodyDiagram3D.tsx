@@ -249,7 +249,34 @@ function BodyPartMesh({
   const isOrganPart = ["heart", "lungs", "liver", "stomach", "kidneys", "spine"].includes(partId);
   const shouldShow = layer !== "organ" || isOrganPart || isOrganView;
   
-  if (!shouldShow && layer === "organ") return null;
+  // Build geometry based on shape type
+  const geometry = useMemo(() => {
+    const [sx, sy, sz] = size;
+    const shape = partData.shape;
+    if (shape === "sphere") {
+      const radius = Math.max(sx, sy, sz) / 2;
+      const geo = new THREE.SphereGeometry(radius, 16, 12);
+      geo.scale(sx / (radius * 2), sy / (radius * 2), sz / (radius * 2));
+      return geo;
+    }
+    if (shape === "capsule") {
+      const radius = Math.min(sx, sz) / 2;
+      const length = Math.max(0.01, sy - radius * 2);
+      const geo = new THREE.CapsuleGeometry(radius, length, 8, 12);
+      geo.scale(1, 1, sz / sx);
+      return geo;
+    }
+    if (shape === "cylinder") {
+      const radius = Math.max(sx, sz) / 2;
+      const geo = new THREE.CylinderGeometry(radius, radius * 0.9, sy, 12);
+      geo.scale(1, 1, sz / sx);
+      return geo;
+    }
+    // ellipsoid fallback
+    const geo = new THREE.SphereGeometry(0.5, 16, 12);
+    geo.scale(sx, sy, sz);
+    return geo;
+  }, [size, partData.shape]);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -260,19 +287,19 @@ function BodyPartMesh({
     <mesh
       ref={meshRef}
       position={position}
+      geometry={geometry}
       onClick={handleClick}
       onPointerOver={(e) => { e.stopPropagation(); setHovered(true); document.body.style.cursor = 'pointer'; }}
       onPointerOut={() => { setHovered(false); document.body.style.cursor = 'auto'; }}
     >
-      <boxGeometry args={size} />
       <meshStandardMaterial
         color={displayColor}
         transparent
         opacity={hovered ? Math.min(1, opacity + 0.2) : opacity}
         emissive={isSelected ? displayColor : "#000000"}
         emissiveIntensity={isSelected ? 0.5 : 0}
-        roughness={0.6}
-        metalness={0.1}
+        roughness={0.4}
+        metalness={0.15}
       />
       {(hovered || isSelected) && (
         <Html
@@ -289,6 +316,7 @@ function BodyPartMesh({
         </Html>
       )}
     </mesh>
+  );
   );
 }
 
