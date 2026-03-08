@@ -134,6 +134,7 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 const DoctorDirectory = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
@@ -399,21 +400,21 @@ const DoctorDirectory = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-5">
               <Zap className="w-3.5 h-3.5" />
-              AI-Matched Specialists Near You
+              {t('doctors.heroBadge')}
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-3">
-              <span className="headline-gradient">Find Your Doctor</span>
+              <span className="headline-gradient">{t('doctors.heroTitle')}</span>
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto text-base">
-              Browse our verified network of healthcare professionals — book instantly or start a video call.
+              {t('doctors.heroSubtitle')}
             </p>
 
             {/* Stats */}
             <div className="flex items-center justify-center gap-8 mt-6">
               {[
-                { icon: Users, label: "Specialists", value: mockDoctors.length },
-                { icon: Stethoscope, label: "Specialties", value: specialties.length - 1 },
-                { icon: Zap, label: "Available Now", value: availableCount },
+                { icon: Users, label: t('doctors.specialists'), value: mockDoctors.length },
+                { icon: Stethoscope, label: t('doctors.specialties'), value: specialties.length - 1 },
+                { icon: Zap, label: t('doctors.availableNow'), value: availableCount },
               ].map((stat) => (
                 <div key={stat.label} className="flex items-center gap-2">
                   <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -450,7 +451,7 @@ const DoctorDirectory = () => {
                   }`} />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Your Location</p>
+                  <p className="text-xs text-muted-foreground">{t('doctors.yourLocation')}</p>
                   <p className="text-sm font-medium text-foreground truncate">{locationName}</p>
                 </div>
                 {locationStatus === "granted" && (
@@ -466,7 +467,7 @@ const DoctorDirectory = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/25 text-primary text-xs font-medium hover:bg-primary/20 transition-colors flex-shrink-0"
                   >
                     <LocateFixed className="w-3.5 h-3.5" />
-                    {locationStatus === "granted" ? "Update" : "Detect"}
+                    {locationStatus === "granted" ? t('doctors.update') : t('doctors.detect')}
                   </button>
                 )}
               </div>
@@ -479,7 +480,7 @@ const DoctorDirectory = () => {
                     type="text"
                     value={manualLocationQuery}
                     onChange={(e) => searchLocation(e.target.value)}
-                    placeholder="Search a city or place..."
+                    placeholder={t('doctors.searchCity')}
                     className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all text-xs"
                   />
                   {isSearchingLocation && (
@@ -504,7 +505,7 @@ const DoctorDirectory = () => {
 
               {/* Distance radius */}
               <div className="flex items-center gap-3 flex-shrink-0">
-                <span className="text-xs text-muted-foreground whitespace-nowrap">Radius:</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">{t('doctors.radius')}</span>
                 <div className="flex gap-1">
                   {[5, 10, 25, 50, 100].map((d) => (
                     <button
@@ -525,9 +526,9 @@ const DoctorDirectory = () => {
               {/* View toggle */}
               <div className="flex items-center gap-1 bg-muted rounded-xl p-1 flex-shrink-0">
                 {[
-                  { mode: "list" as const, icon: List, label: "List" },
-                  { mode: "split" as const, icon: Map, label: "Split" },
-                  { mode: "map" as const, icon: MapPin, label: "Map" },
+                  { mode: "list" as const, icon: List, label: t('doctors.list') },
+                  { mode: "split" as const, icon: Map, label: t('doctors.split') },
+                  { mode: "map" as const, icon: MapPin, label: t('doctors.map') },
                 ].map(({ mode, icon: Icon, label }) => (
                   <button
                     key={mode}
@@ -559,7 +560,7 @@ const DoctorDirectory = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name, specialty, or condition..."
+                placeholder={t('doctors.searchPlaceholder')}
                 className="w-full pl-14 pr-5 py-4 bg-card border border-border rounded-2xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all text-sm"
               />
             </div>
@@ -631,7 +632,7 @@ const DoctorDirectory = () => {
                 }`}
               >
                 <Shield className="w-3.5 h-3.5" />
-                Free Treatment
+                {t('doctors.freeTreatment')}
               </button>
               {showSchemeOnly && (
                 <div className="flex items-center gap-2 flex-wrap">
@@ -646,7 +647,7 @@ const DoctorDirectory = () => {
                           : "bg-card border-border text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      {cat === "all" ? "All" : cat === "central" ? "Central" : userState || "State"}
+                      {cat === "all" ? t('doctors.all') : cat === "central" ? t('doctors.central') : userState || t('doctors.stateSchemes')}
                     </button>
                   ))}
                   {/* Filtered scheme dropdown */}
@@ -655,7 +656,7 @@ const DoctorDirectory = () => {
                     onChange={(e) => setSelectedSchemeFilter(e.target.value)}
                     className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all max-w-[220px]"
                   >
-                    <option value="all">All Schemes</option>
+                    <option value="all">{t('doctors.allSchemes')}</option>
                     {schemeCategory !== "state" && (
                       <optgroup label="🏛️ Central Government Schemes">
                         {availableSchemes.filter(s => s.is_national).map((s) => (
@@ -688,11 +689,11 @@ const DoctorDirectory = () => {
             </div>
             {!showSchemeOnly && (
               <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted-foreground mr-1">Sort:</span>
+                <span className="text-xs text-muted-foreground mr-1">{t('doctors.sortBy')}</span>
                 {[
-                  { value: "rating", icon: Star, label: "Rating" },
-                  { value: "distance", icon: MapPin, label: "Distance" },
-                  { value: "reviews", icon: Clock, label: "Reviews" },
+                  { value: "rating", icon: Star, label: t('doctors.rating') },
+                  { value: "distance", icon: MapPin, label: t('doctors.distance') },
+                  { value: "reviews", icon: Clock, label: t('doctors.reviews') },
                 ].map((option) => (
                   <button
                     key={option.value}
@@ -715,7 +716,7 @@ const DoctorDirectory = () => {
           {showSchemeOnly ? (
             <div className={`${viewMode === "split" ? "grid lg:grid-cols-2 gap-6" : ""}`}>
               {schemeDoctorsLoading ? (
-                <div className="text-center py-20 text-muted-foreground">Loading government scheme doctors...</div>
+                <div className="text-center py-20 text-muted-foreground">{t('doctors.loadingScheme')}</div>
               ) : filteredSchemeDoctors.length === 0 ? (
                 <motion.div
                   className="text-center py-20"
@@ -725,13 +726,13 @@ const DoctorDirectory = () => {
                   <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-muted flex items-center justify-center">
                     <Shield className="w-7 h-7 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">No scheme doctors found</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Try increasing the radius or changing specialty</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-1">{t('doctors.noSchemeDoctors')}</h3>
+                  <p className="text-sm text-muted-foreground mb-4">{t('doctors.noSchemeDoctorsHint')}</p>
                   <button
                     onClick={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }}
                     className="text-sm text-primary hover:underline font-medium"
                   >
-                    Clear all filters
+                    {t('doctors.clearAllFilters')}
                   </button>
                 </motion.div>
               ) : (
@@ -813,16 +814,16 @@ const DoctorDirectory = () => {
                 <Search className="w-7 h-7 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-1">
-                No specialists found
+                {t('doctors.noSpecialistsFound')}
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Try increasing the radius or changing filters
+                {t('doctors.noSpecialistsHint')}
               </p>
               <button
                 onClick={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }}
                 className="text-sm text-primary hover:underline font-medium"
               >
-                Clear all filters
+                {t('doctors.clearAllFilters')}
               </button>
             </motion.div>
           )}
