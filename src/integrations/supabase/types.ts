@@ -56,6 +56,108 @@ export type Database = {
         }
         Relationships: []
       }
+      government_schemes_db: {
+        Row: {
+          coverage: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_national: boolean
+          name: string
+          short_name: string
+          state: string
+        }
+        Insert: {
+          coverage?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_national?: boolean
+          name: string
+          short_name: string
+          state: string
+        }
+        Update: {
+          coverage?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_national?: boolean
+          name?: string
+          short_name?: string
+          state?: string
+        }
+        Relationships: []
+      }
+      hospital_schemes: {
+        Row: {
+          hospital_id: string
+          id: string
+          scheme_id: string
+        }
+        Insert: {
+          hospital_id: string
+          id?: string
+          scheme_id: string
+        }
+        Update: {
+          hospital_id?: string
+          id?: string
+          scheme_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hospital_schemes_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hospital_schemes_scheme_id_fkey"
+            columns: ["scheme_id"]
+            isOneToOne: false
+            referencedRelation: "government_schemes_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hospitals: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          id: string
+          latitude: number
+          longitude: number
+          name: string
+          phone: string | null
+          state: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          id?: string
+          latitude: number
+          longitude: number
+          name: string
+          phone?: string | null
+          state: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          id?: string
+          latitude?: number
+          longitude?: number
+          name?: string
+          phone?: string | null
+          state?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           booking_ref: string | null
@@ -109,6 +211,44 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      scheme_doctors: {
+        Row: {
+          created_at: string
+          experience: string | null
+          hospital_id: string
+          id: string
+          languages: string | null
+          name: string
+          specialization: string
+        }
+        Insert: {
+          created_at?: string
+          experience?: string | null
+          hospital_id: string
+          id?: string
+          languages?: string | null
+          name: string
+          specialization: string
+        }
+        Update: {
+          created_at?: string
+          experience?: string | null
+          hospital_id?: string
+          id?: string
+          languages?: string | null
+          name?: string
+          specialization?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheme_doctors_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

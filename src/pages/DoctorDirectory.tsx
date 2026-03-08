@@ -15,12 +15,14 @@ import {
   Map,
   List,
   Navigation,
+  Shield,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import DoctorCard from "@/components/doctors/DoctorCard";
 import BookingDialog from "@/components/doctors/BookingDialog";
 import DoctorMap from "@/components/doctors/DoctorMap";
+import SchemeDoctorCard, { type SchemeDoctor } from "@/components/doctors/SchemeDoctorCard";
 import { supabase } from "@/integrations/supabase/client";
 
 const specialties = [
@@ -136,6 +138,9 @@ const DoctorDirectory = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
   const [sortBy, setSortBy] = useState("rating");
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
+  const [showSchemeOnly, setShowSchemeOnly] = useState(false);
+  const [schemeDoctors, setSchemeDoctors] = useState<SchemeDoctor[]>([]);
+  const [schemeDoctorsLoading, setSchemeDoctorsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "granted" | "denied">("idle");
   const [locationName, setLocationName] = useState("Detecting location...");
@@ -203,6 +208,39 @@ const DoctorDirectory = () => {
   useEffect(() => {
     detectLocation();
   }, [detectLocation]);
+
+  // Fetch scheme doctors from DB
+  useEffect(() => {
+    const fetchSchemeDoctors = async () => {
+      setSchemeDoctorsLoading(true);
+      const { data, error } = await supabase
+        .from("scheme_doctors")
+        .select(`
+          id, name, specialization, languages, experience,
+          hospital:hospitals!inner(id, name, address, city, state, latitude, longitude, phone),
+          hospitals!inner(
+            hospital_schemes(
+              scheme:government_schemes_db(short_name, name, coverage)
+            )
+          )
+        `);
+
+      if (!error && data) {
+        const mapped: SchemeDoctor[] = (data as any[]).map((d) => ({
+          id: d.id,
+          name: d.name,
+          specialization: d.specialization,
+          languages: d.languages || "",
+          experience: d.experience || "",
+          hospital: d.hospital,
+          schemes: d.hospitals?.hospital_schemes?.map((hs: any) => hs.scheme) || [],
+        }));
+        setSchemeDoctors(mapped);
+      }
+      setSchemeDoctorsLoading(false);
+    };
+    fetchSchemeDoctors();
+  }, []);
 
   const searchLocation = useCallback((query: string) => {
     setManualLocationQuery(query);
@@ -277,6 +315,28 @@ const DoctorDirectory = () => {
     rating: d.rating,
     nextSlot: d.nextSlot,
   }));
+
+  // Filter scheme doctors by specialty, search, and distance
+  const filteredSchemeDoctors = schemeDoctors
+    .map((d) => {
+      if (userLocation) {
+        const dist = haversineDistance(userLocation.lat, userLocation.lng, d.hospital.latitude, d.hospital.longitude);
+        return { ...d, distance: dist };
+      }
+      return d;
+    })
+    .filter((d) => {
+      const matchesSearch =
+        d.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.specialization.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.hospital.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSpecialty =
+        selectedSpecialty === "All Specialties" ||
+        d.specialization === selectedSpecialty;
+      const matchesDistance = d.distance === undefined || d.distance <= maxDistance;
+      return matchesSearch && matchesSpecialty && matchesDistance;
+    })
+    .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
   return (
     <div className="min-h-screen bg-background">
@@ -500,83 +560,134 @@ const DoctorDirectory = () => {
             </button>
           </motion.div>
 
-          {/* Toolbar: count + sort */}
+          {/* Toolbar: count + sort + scheme toggle */}
           <motion.div
-            className="flex items-center justify-between mb-6"
+            className="flex flex-wrap items-center justify-between gap-3 mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <p className="text-sm text-muted-foreground">
-              <span className="text-foreground font-semibold">{sortedDoctors.length}</span> specialist{sortedDoctors.length !== 1 && "s"}
-              {selectedSpecialty !== "All Specialties" && (
-                <span> in <span className="text-primary font-medium">{selectedSpecialty}</span></span>
-              )}
-              <span className="text-muted-foreground"> within {maxDistance} km</span>
-            </p>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground mr-1">Sort:</span>
-              {[
-                { value: "rating", icon: Star, label: "Rating" },
-                { value: "distance", icon: MapPin, label: "Distance" },
-                { value: "reviews", icon: Clock, label: "Reviews" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setSortBy(option.value)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                    sortBy === option.value
-                      ? "bg-primary/15 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <option.icon className="w-3 h-3" />
-                  {option.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-muted-foreground">
+                <span className="text-foreground font-semibold">
+                  {showSchemeOnly ? filteredSchemeDoctors.length : sortedDoctors.length}
+                </span> specialist{(showSchemeOnly ? filteredSchemeDoctors.length : sortedDoctors.length) !== 1 && "s"}
+                {selectedSpecialty !== "All Specialties" && (
+                  <span> in <span className="text-primary font-medium">{selectedSpecialty}</span></span>
+                )}
+                <span className="text-muted-foreground"> within {maxDistance} km</span>
+              </p>
+              <button
+                onClick={() => setShowSchemeOnly(!showSchemeOnly)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  showSchemeOnly
+                    ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.2)]"
+                    : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
+                }`}
+              >
+                <Shield className="w-3.5 h-3.5" />
+                Free Treatment
+              </button>
             </div>
+            {!showSchemeOnly && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-muted-foreground mr-1">Sort:</span>
+                {[
+                  { value: "rating", icon: Star, label: "Rating" },
+                  { value: "distance", icon: MapPin, label: "Distance" },
+                  { value: "reviews", icon: Clock, label: "Reviews" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setSortBy(option.value)}
+                    className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      sortBy === option.value
+                        ? "bg-primary/15 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                  >
+                    <option.icon className="w-3 h-3" />
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
 
-          {/* Main content: list / map / split */}
-          <div className={`${viewMode === "split" ? "grid lg:grid-cols-2 gap-6" : ""}`}>
-            {/* Doctor list */}
-            {viewMode !== "map" && (
-              <AnimatePresence mode="wait">
+          {/* Main content */}
+          {showSchemeOnly ? (
+            <div>
+              {schemeDoctorsLoading ? (
+                <div className="text-center py-20 text-muted-foreground">Loading government scheme doctors...</div>
+              ) : filteredSchemeDoctors.length === 0 ? (
                 <motion.div
-                  key={selectedSpecialty + sortBy + maxDistance}
-                  className={`grid gap-5 ${viewMode === "split" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
+                  className="text-center py-20"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                >
+                  <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-muted flex items-center justify-center">
+                    <Shield className="w-7 h-7 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-1">No scheme doctors found</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Try increasing the radius or changing specialty</p>
+                  <button
+                    onClick={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }}
+                    className="text-sm text-primary hover:underline font-medium"
+                  >
+                    Clear all filters
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  style={viewMode === "split" ? { maxHeight: "70vh", overflowY: "auto", paddingRight: 4 } : {}}
                 >
-                  {sortedDoctors.map((doctor, index) => (
-                    <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
+                  {filteredSchemeDoctors.map((doctor, index) => (
+                    <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
                   ))}
                 </motion.div>
-              </AnimatePresence>
-            )}
+              )}
+            </div>
+          ) : (
+            <div className={`${viewMode === "split" ? "grid lg:grid-cols-2 gap-6" : ""}`}>
+              {viewMode !== "map" && (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={selectedSpecialty + sortBy + maxDistance}
+                    className={`grid gap-5 ${viewMode === "split" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={viewMode === "split" ? { maxHeight: "70vh", overflowY: "auto", paddingRight: 4 } : {}}
+                  >
+                    {sortedDoctors.map((doctor, index) => (
+                      <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              )}
 
-            {/* Map */}
-            {viewMode !== "list" && (
-              <motion.div
-                className="glass-panel overflow-hidden"
-                style={{ height: viewMode === "map" ? "70vh" : "70vh" }}
-                initial={{ opacity: 0, scale: 0.98 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.1 }}
-              >
-                <DoctorMap
-                  doctors={mapDoctors}
-                  userLocation={userLocation}
-                />
-              </motion.div>
-            )}
-          </div>
+              {viewMode !== "list" && (
+                <motion.div
+                  className="glass-panel overflow-hidden"
+                  style={{ height: viewMode === "map" ? "70vh" : "70vh" }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <DoctorMap
+                    doctors={mapDoctors}
+                    userLocation={userLocation}
+                  />
+                </motion.div>
+              )}
+            </div>
+          )}
 
-          {/* Empty State */}
-          {sortedDoctors.length === 0 && (
+          {!showSchemeOnly && sortedDoctors.length === 0 && (
             <motion.div
               className="text-center py-20"
               initial={{ opacity: 0, scale: 0.95 }}
