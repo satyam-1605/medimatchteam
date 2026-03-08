@@ -70,6 +70,11 @@ const Navbar = () => {
             {session ? (
               <>
                 <NotificationBell />
+                <Link to="/profile">
+                  <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <UserCircle className="w-4 h-4" />
+                  </button>
+                </Link>
                 <Link to="/my-bookings">
                   <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <CalendarCheck className="w-4 h-4" />
