@@ -76,11 +76,39 @@ const SymptomAnalysis = () => {
   const [showMedicalHistory, setShowMedicalHistory] = useState(false);
   const [medications, setMedications] = useState<string[]>([]);
   const [newMedication, setNewMedication] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
   const [showEmergency, setShowEmergency] = useState(false);
   const [emergencySymptoms, setEmergencySymptoms] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>("General");
+  const { toast } = useToast();
+
+  const speech = useSpeechToText({ language: i18n.language });
+
+  // Append speech transcript to symptoms
+  useEffect(() => {
+    if (speech.transcript) {
+      setSymptoms((prev) => {
+        const separator = prev && !prev.endsWith(" ") ? " " : "";
+        return prev + separator + speech.transcript;
+      });
+      speech.resetTranscript();
+    }
+  }, [speech.transcript]);
+
+  // Show speech errors
+  useEffect(() => {
+    if (speech.error) {
+      toast({ title: "Voice Input Error", description: speech.error, variant: "destructive" });
+    }
+  }, [speech.error]);
+
+  const toggleRecording = useCallback(() => {
+    if (speech.isListening) {
+      speech.stopListening();
+    } else {
+      speech.startListening();
+    }
+  }, [speech]);
 
   useEffect(() => {
     const allText = `${symptoms} ${selectedQuickSymptoms.join(" ")}`;
