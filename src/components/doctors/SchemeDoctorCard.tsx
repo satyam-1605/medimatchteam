@@ -1,14 +1,28 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star,
   MapPin,
   Briefcase,
   Globe,
   Shield,
   Building2,
   Phone,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  CheckCircle,
+  Users,
 } from "lucide-react";
 import GlowButton from "@/components/ui/GlowButton";
+
+export interface SchemeInfo {
+  short_name: string;
+  name: string;
+  coverage: string | null;
+  eligibility: string | null;
+  official_url: string | null;
+  description: string | null;
+}
 
 export interface SchemeDoctor {
   id: string;
@@ -26,7 +40,7 @@ export interface SchemeDoctor {
     longitude: number;
     phone: string | null;
   };
-  schemes: { short_name: string; name: string; coverage: string | null }[];
+  schemes: SchemeInfo[];
   distance?: number;
 }
 
@@ -36,6 +50,8 @@ interface SchemeDoctorCardProps {
 }
 
 const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
+  const [expandedScheme, setExpandedScheme] = useState<string | null>(null);
+
   return (
     <motion.div
       className="group glass-panel overflow-hidden transition-all duration-300 hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]"
@@ -47,18 +63,11 @@ const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
       <div className="flex items-center gap-2 px-5 py-2.5 border-b border-border bg-emerald-500/10">
         <Shield className="w-3.5 h-3.5 text-emerald-500" />
         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-          Free Treatment Available
+          Free / Subsidized Treatment
         </span>
-        <div className="ml-auto flex gap-1.5">
-          {doctor.schemes.map((s) => (
-            <span
-              key={s.short_name}
-              className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-[10px] font-medium text-emerald-600 dark:text-emerald-400"
-            >
-              {s.short_name}
-            </span>
-          ))}
-        </div>
+        <span className="ml-auto text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
+          {doctor.schemes.length} scheme{doctor.schemes.length !== 1 && "s"}
+        </span>
       </div>
 
       <div className="p-5">
@@ -114,16 +123,70 @@ const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
           </div>
         </div>
 
-        {/* Scheme coverage */}
-        <div className="space-y-1.5 mb-4">
-          {doctor.schemes.map((s) => (
-            <div key={s.short_name} className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">{s.name}</span>
-              {s.coverage && (
-                <span className="font-medium text-emerald-600 dark:text-emerald-400">{s.coverage}</span>
-              )}
-            </div>
-          ))}
+        {/* Dynamic scheme list with expandable details */}
+        <div className="space-y-2 mb-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Accepted Schemes</p>
+          {doctor.schemes.map((s) => {
+            const isExpanded = expandedScheme === s.short_name;
+            return (
+              <div key={s.short_name} className="rounded-lg border border-border/50 overflow-hidden">
+                <button
+                  onClick={() => setExpandedScheme(isExpanded ? null : s.short_name)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted/50 transition-colors"
+                >
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                  <span className="text-xs font-medium text-foreground flex-1 truncate">{s.short_name}</span>
+                  {s.coverage && (
+                    <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                      {s.coverage}
+                    </span>
+                  )}
+                  {isExpanded ? (
+                    <ChevronUp className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                  )}
+                </button>
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2">
+                        <p className="text-xs text-foreground font-medium">{s.name}</p>
+                        {s.description && (
+                          <p className="text-[11px] text-muted-foreground">{s.description}</p>
+                        )}
+                        {s.eligibility && (
+                          <div className="flex items-start gap-1.5">
+                            <Users className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                            <p className="text-[11px] text-muted-foreground">
+                              <span className="font-medium text-foreground">Eligibility:</span> {s.eligibility}
+                            </p>
+                          </div>
+                        )}
+                        {s.official_url && (
+                          <a
+                            href={s.official_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            Official Portal
+                          </a>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
 
         {/* CTA */}
