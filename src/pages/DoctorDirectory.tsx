@@ -359,7 +359,15 @@ const DoctorDirectory = () => {
       const matchesScheme =
         selectedSchemeFilter === "all" ||
         d.schemes.some((s) => s.short_name === selectedSchemeFilter);
-      return matchesSearch && matchesSpecialty && matchesDistance && matchesScheme;
+      // Category filter: only show doctors whose hospital has schemes matching the category
+      const matchesCategory = schemeCategory === "all" || d.schemes.some((s) => {
+        const schemeInfo = availableSchemes.find((as) => as.short_name === s.short_name);
+        if (!schemeInfo) return false;
+        if (schemeCategory === "central") return schemeInfo.is_national;
+        if (schemeCategory === "state") return !schemeInfo.is_national;
+        return true;
+      });
+      return matchesSearch && matchesSpecialty && matchesDistance && matchesScheme && matchesCategory;
     })
     .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
