@@ -601,170 +601,163 @@ const BodyDiagram3D = ({ selectedParts, onPartClick }: BodyDiagram3DProps) => {
         fallback={<WebGLFallback onTroubleshoot={() => setShowTroubleshoot(true)} />}
         onError={handleWebGLError}
       >
-        <div 
-          ref={canvasContainerRef}
-          className="relative w-full h-[500px] rounded-xl overflow-hidden bg-gradient-to-b from-muted/30 to-muted/10 border border-border"
-        >
-          {/* Help Button */}
-          <button
-            onClick={() => setShowTroubleshoot(true)}
-            className="absolute top-4 right-[140px] z-10 p-2 rounded-lg bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            title="Troubleshoot 3D issues"
-          >
-            <HelpCircle className="w-4 h-4" />
-          </button>
-
-          {/* Layer Controls */}
-          <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-            <div className="glass-panel p-2 flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground px-2 flex items-center gap-1">
-                <Layers className="w-3 h-3" /> Layer
-              </span>
+        <div className="space-y-3">
+          {/* Top Controls Bar */}
+          <div className="flex items-start gap-3 flex-wrap">
+            {/* Layer Selector */}
+            <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 p-2 flex items-center gap-1">
+              <Layers className="w-3.5 h-3.5 text-muted-foreground ml-1 mr-1" />
               {layers.map((l) => (
-                <motion.button
+                <button
                   key={l.type}
                   onClick={() => setLayer(l.type)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 ${
                     layer === l.type
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                 >
                   {l.icon}
-                  {l.label}
-                </motion.button>
+                  <span className="hidden sm:inline">{l.label}</span>
+                </button>
               ))}
             </div>
-          </div>
 
-          {/* Symptom Type Selector */}
-          <div className="absolute top-4 right-4 z-10 glass-panel p-2">
-            <span className="text-xs text-muted-foreground px-2 block mb-1">Symptom Type</span>
-            <div className="flex flex-wrap gap-1">
+            {/* Symptom Type Selector */}
+            <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 p-2 flex items-center gap-1">
+              <Eye className="w-3.5 h-3.5 text-muted-foreground ml-1 mr-1" />
               {symptomTypes.map((s) => (
-                <motion.button
+                <button
                   key={s.type}
                   onClick={() => setCurrentSymptomType(s.type)}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                     currentSymptomType === s.type
-                      ? "ring-2 ring-offset-1 ring-offset-background"
-                      : "opacity-70 hover:opacity-100"
+                      ? "border-current shadow-sm"
+                      : "border-transparent opacity-60 hover:opacity-100"
                   }`}
                   style={{ 
-                    backgroundColor: s.color + "30",
+                    backgroundColor: s.color + "20",
                     color: s.color,
-                    borderColor: s.color,
                   }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
                   {s.label}
-                </motion.button>
+                </button>
               ))}
             </div>
-          </div>
 
-          {/* Zoom Controls */}
-          <div className="absolute bottom-4 right-4 z-10 glass-panel p-1 flex gap-1">
+            {/* Help */}
             <button
-              onClick={() => setZoom((z) => Math.max(1.5, z - 0.5))}
-              className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setShowTroubleshoot(true)}
+              className="ml-auto p-2 rounded-lg bg-card/80 backdrop-blur-sm border border-border/50 text-muted-foreground hover:text-foreground transition-colors"
+              title="Troubleshoot 3D issues"
             >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setZoom((z) => Math.min(6, z + 0.5))}
-              className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <button
-              onClick={resetView}
-              className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
+              <HelpCircle className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Instructions */}
-          <div className="absolute bottom-4 left-4 z-10 text-xs text-muted-foreground">
-            <p>Drag to rotate • Scroll to zoom • Click to select</p>
-          </div>
-
-          {/* 3D Canvas with WebGL fallback configuration */}
-          <Canvas
-            camera={{ position: [0, 0.5, zoom], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{
-              antialias: true,
-              alpha: true,
-              powerPreference: 'default',
-              failIfMajorPerformanceCaveat: false, // Allow software rendering
-              preserveDrawingBuffer: true,
-            }}
-            onCreated={({ gl }) => {
-              // Log WebGL info for debugging
-              const glContext = gl.getContext();
-              const debugInfo = glContext.getExtension('WEBGL_debug_renderer_info');
-              if (debugInfo) {
-                console.log('WebGL Renderer:', glContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
-              }
-            }}
+          {/* 3D Viewport */}
+          <div 
+            ref={canvasContainerRef}
+            className="relative w-full h-[420px] rounded-2xl overflow-hidden bg-gradient-to-b from-background/50 to-muted/10 border border-border/50"
           >
-        <Suspense fallback={null}>
-          <ambientLight intensity={0.6} />
-          <directionalLight position={[5, 5, 5]} intensity={0.8} />
-          <directionalLight position={[-5, 5, -5]} intensity={0.4} />
-          <pointLight position={[0, 2, 2]} intensity={0.3} color="#00ffff" />
-          
-          <BodyModel3D
-            selectedParts={selectedParts}
-            onPartClick={handlePartClick}
-            layer={layer}
-            currentSymptomType={currentSymptomType}
-          />
-          
-          <ContactShadows
-            position={[0, -0.55, 0]}
-            opacity={0.4}
-            scale={3}
-            blur={2}
-            far={1}
-          />
-          
-          <OrbitControls
-            ref={controlsRef}
-            enablePan={false}
-            minDistance={1.5}
-            maxDistance={6}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI - Math.PI / 6}
-          />
-        </Suspense>
-      </Canvas>
+            {/* Zoom Controls */}
+            <div className="absolute bottom-3 right-3 z-10 flex gap-1 rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 p-1">
+              <button
+                onClick={() => setZoom((z) => Math.max(1.5, z - 0.5))}
+                className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ZoomIn className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => setZoom((z) => Math.min(6, z + 0.5))}
+                className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ZoomOut className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={resetView}
+                className="p-1.5 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-16 left-4 z-10 glass-panel p-2">
-        <span className="text-xs text-muted-foreground block mb-1">Selected ({Object.keys(selectedParts).length})</span>
-        <div className="flex flex-wrap gap-1 max-w-[200px]">
-          {Object.entries(selectedParts).slice(0, 6).map(([partId, type]) => (
-            <span
-              key={partId}
-              className="px-2 py-0.5 rounded text-xs"
-              style={{ backgroundColor: symptomColors[type] + "30", color: symptomColors[type] }}
+            {/* Instructions */}
+            <div className="absolute bottom-3 left-3 z-10 text-[10px] text-muted-foreground/60">
+              Drag to rotate • Scroll to zoom • Click to select
+            </div>
+
+            {/* 3D Canvas */}
+            <Canvas
+              camera={{ position: [0, 0.5, zoom], fov: 50 }}
+              style={{ background: 'transparent' }}
+              gl={{
+                antialias: true,
+                alpha: true,
+                powerPreference: 'default',
+                failIfMajorPerformanceCaveat: false,
+                preserveDrawingBuffer: true,
+              }}
+              onCreated={({ gl }) => {
+                const glContext = gl.getContext();
+                const debugInfo = glContext.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                  console.log('WebGL Renderer:', glContext.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL));
+                }
+              }}
             >
-              {bodyPartData[partId]?.name || partId}
-            </span>
-          ))}
-          {Object.keys(selectedParts).length > 6 && (
-            <span className="px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground">
-              +{Object.keys(selectedParts).length - 6} more
-            </span>
+              <Suspense fallback={null}>
+                <ambientLight intensity={0.6} />
+                <directionalLight position={[5, 5, 5]} intensity={0.8} />
+                <directionalLight position={[-5, 5, -5]} intensity={0.4} />
+                <pointLight position={[0, 2, 2]} intensity={0.3} color="#00ffff" />
+                
+                <BodyModel3D
+                  selectedParts={selectedParts}
+                  onPartClick={handlePartClick}
+                  layer={layer}
+                  currentSymptomType={currentSymptomType}
+                />
+                
+                <ContactShadows
+                  position={[0, -0.55, 0]}
+                  opacity={0.4}
+                  scale={3}
+                  blur={2}
+                  far={1}
+                />
+                
+                <OrbitControls
+                  ref={controlsRef}
+                  enablePan={false}
+                  minDistance={1.5}
+                  maxDistance={6}
+                  minPolarAngle={Math.PI / 6}
+                  maxPolarAngle={Math.PI - Math.PI / 6}
+                />
+              </Suspense>
+            </Canvas>
+          </div>
+
+          {/* Selected Parts Legend */}
+          {Object.keys(selectedParts).length > 0 && (
+            <div className="rounded-xl bg-card/80 backdrop-blur-sm border border-border/50 p-3">
+              <span className="text-xs text-muted-foreground mb-2 block">
+                Selected Areas ({Object.keys(selectedParts).length})
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {Object.entries(selectedParts).map(([partId, type]) => (
+                  <span
+                    key={partId}
+                    className="px-2.5 py-1 rounded-full text-xs font-medium"
+                    style={{ backgroundColor: symptomColors[type] + "20", color: symptomColors[type] }}
+                  >
+                    {bodyPartData[partId]?.name || partId}
+                  </span>
+                ))}
+              </div>
+            </div>
           )}
-        </div>
-        </div>
         </div>
       </WebGLErrorBoundary>
       <WebGLTroubleshoot isOpen={showTroubleshoot} onClose={() => setShowTroubleshoot(false)} />
