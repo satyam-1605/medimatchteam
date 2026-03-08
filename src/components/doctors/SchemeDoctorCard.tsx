@@ -149,6 +149,13 @@ const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
                   className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted/50 transition-colors"
                 >
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                  <span className={`px-1.5 py-0 rounded text-[9px] font-bold flex-shrink-0 ${
+                    s.is_national
+                      ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
+                      : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                  }`}>
+                    {s.is_national ? "Central" : "State"}
+                  </span>
                   <span className="text-xs font-medium text-foreground flex-1 truncate">{s.short_name}</span>
                   {s.coverage && (
                     <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex-shrink-0">
