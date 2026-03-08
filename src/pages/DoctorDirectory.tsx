@@ -371,6 +371,17 @@ const DoctorDirectory = () => {
     })
     .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
+  const schemeMapDoctors = filteredSchemeDoctors.map((d, i) => ({
+    id: i,
+    name: d.name,
+    specialty: d.specialization,
+    lat: d.hospital.latitude,
+    lng: d.hospital.longitude,
+    availability: "available" as const,
+    rating: 4.5,
+    nextSlot: d.hospital.name,
+  }));
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
