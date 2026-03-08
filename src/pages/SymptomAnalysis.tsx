@@ -27,6 +27,8 @@ import BodyDiagram from "@/components/symptoms/BodyDiagram";
 import EmergencyOverlay, { checkForEmergency } from "@/components/symptoms/EmergencyOverlay";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useSpeechToText } from "@/hooks/useSpeechToText";
+import { useToast } from "@/hooks/use-toast";
 
 const BodyDiagram3D = lazy(() => import("@/components/symptoms/BodyDiagram3D"));
 
