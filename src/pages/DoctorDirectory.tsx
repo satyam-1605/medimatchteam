@@ -209,6 +209,39 @@ const DoctorDirectory = () => {
     detectLocation();
   }, [detectLocation]);
 
+  // Fetch scheme doctors from DB
+  useEffect(() => {
+    const fetchSchemeDoctors = async () => {
+      setSchemeDoctorsLoading(true);
+      const { data, error } = await supabase
+        .from("scheme_doctors")
+        .select(`
+          id, name, specialization, languages, experience,
+          hospital:hospitals!inner(id, name, address, city, state, latitude, longitude, phone),
+          hospitals!inner(
+            hospital_schemes(
+              scheme:government_schemes_db(short_name, name, coverage)
+            )
+          )
+        `);
+
+      if (!error && data) {
+        const mapped: SchemeDoctor[] = (data as any[]).map((d) => ({
+          id: d.id,
+          name: d.name,
+          specialization: d.specialization,
+          languages: d.languages || "",
+          experience: d.experience || "",
+          hospital: d.hospital,
+          schemes: d.hospitals?.hospital_schemes?.map((hs: any) => hs.scheme) || [],
+        }));
+        setSchemeDoctors(mapped);
+      }
+      setSchemeDoctorsLoading(false);
+    };
+    fetchSchemeDoctors();
+  }, []);
+
   const searchLocation = useCallback((query: string) => {
     setManualLocationQuery(query);
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
