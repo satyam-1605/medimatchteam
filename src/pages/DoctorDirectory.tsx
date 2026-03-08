@@ -666,57 +666,67 @@ const DoctorDirectory = () => {
             ) : filteredSchemeDoctors.length === 0 ? (
               <EmptyState icon={Shield} title={t("doctors.noSchemeDoctors")} hint={t("doctors.noSchemeDoctorsHint")} onClear={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }} clearLabel={t("doctors.clearAllFilters")} />
             ) : (
-              <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
-                {viewMode !== "map" && (
-                  <div
-                    className={viewMode === "split"
-                      ? "w-1/2 space-y-4 overflow-y-auto pr-2"
-                      : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-                    }
-                  >
-                    {filteredSchemeDoctors.map((doctor, index) => (
-                      <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
-                    ))}
-                  </div>
+              <>
+                <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
+                  {viewMode !== "map" && (
+                    <div
+                      className={viewMode === "split"
+                        ? "w-1/2 space-y-4 overflow-y-auto pr-2"
+                        : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                      }
+                    >
+                      {(viewMode === "list" ? paginatedSchemeDoctors : filteredSchemeDoctors).map((doctor, index) => (
+                        <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
+                      ))}
+                    </div>
+                  )}
+                  {viewMode !== "list" && (
+                    <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
+                      <DoctorMap doctors={schemeMapDoctors} userLocation={userLocation} />
+                    </div>
+                  )}
+                </div>
+                {viewMode === "list" && totalPages > 1 && (
+                  <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 )}
-                {viewMode !== "list" && (
-                  <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
-                    <DoctorMap doctors={schemeMapDoctors} userLocation={userLocation} />
-                  </div>
-                )}
-              </div>
+              </>
             )
           ) : (
             /* Regular doctors view */
             sortedDoctors.length === 0 ? (
               <EmptyState icon={Search} title={t("doctors.noSpecialistsFound")} hint={t("doctors.noSpecialistsHint")} onClear={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }} clearLabel={t("doctors.clearAllFilters")} />
             ) : (
-              <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
-                {viewMode !== "map" && (
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={selectedSpecialty + sortBy + maxDistance}
-                      className={viewMode === "split"
-                        ? "w-1/2 space-y-4 overflow-y-auto pr-2"
-                        : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-                      }
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {sortedDoctors.map((doctor, index) => (
-                        <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
+              <>
+                <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
+                  {viewMode !== "map" && (
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={selectedSpecialty + sortBy + maxDistance + currentPage}
+                        className={viewMode === "split"
+                          ? "w-1/2 space-y-4 overflow-y-auto pr-2"
+                          : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                        }
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {(viewMode === "list" ? paginatedDoctors : sortedDoctors).map((doctor, index) => (
+                          <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
+                        ))}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
+                  {viewMode !== "list" && (
+                    <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
+                      <DoctorMap doctors={mapDoctors} userLocation={userLocation} />
+                    </div>
+                  )}
+                </div>
+                {viewMode === "list" && totalPages > 1 && (
+                  <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 )}
-                {viewMode !== "list" && (
-                  <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
-                    <DoctorMap doctors={mapDoctors} userLocation={userLocation} />
-                  </div>
-                )}
-              </div>
+              </>
             )
           )}
         </div>
