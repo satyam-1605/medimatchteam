@@ -67,8 +67,17 @@ const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
           Free / Subsidized Treatment
         </span>
-        <span className="ml-auto text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 px-2 py-0.5 rounded-full">
-          {doctor.schemes.length} scheme{doctor.schemes.length !== 1 && "s"}
+        <span className="ml-auto flex gap-1.5 flex-wrap justify-end">
+          {doctor.schemes.filter(s => s.is_national).length > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/25 text-[10px] font-medium text-blue-600 dark:text-blue-400">
+              Central
+            </span>
+          )}
+          {doctor.schemes.filter(s => !s.is_national).length > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+              State
+            </span>
+          )}
         </span>
       </div>
 
