@@ -27,6 +27,7 @@ interface DoctorCardProps {
     videoCallAvailable?: boolean;
   };
   index?: number;
+  onBook?: (doctor: DoctorCardProps["doctor"]) => void;
 }
 
 const availabilityConfig = {
@@ -47,7 +48,7 @@ const availabilityConfig = {
   },
 };
 
-const DoctorCard = ({ doctor, index = 0 }: DoctorCardProps) => {
+const DoctorCard = ({ doctor, index = 0, onBook }: DoctorCardProps) => {
   const availability = availabilityConfig[doctor.availability];
 
   return (
@@ -138,7 +139,7 @@ const DoctorCard = ({ doctor, index = 0 }: DoctorCardProps) => {
           <GlowButton
             size="sm"
             className="flex-1"
-            onClick={() => alert("Book appointment flow would open here. (Demo)")}
+            onClick={() => onBook ? onBook(doctor) : alert("Book appointment flow would open here. (Demo)")}
           >
             <Calendar className="w-4 h-4 mr-1.5" />
             Book

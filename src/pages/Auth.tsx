@@ -120,9 +120,11 @@ const Auth = () => {
                     className="pl-10"
                   />
                 </div>
-                <GlowButton type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Signing in..." : "Sign In"}
-                </GlowButton>
+                <button type="submit" className="w-full">
+                  <GlowButton className="w-full pointer-events-none" disabled={loading}>
+                    {loading ? "Signing in..." : "Sign In"}
+                  </GlowButton>
+                </button>
               </form>
             </TabsContent>
 
@@ -172,9 +174,11 @@ const Auth = () => {
                     className="pl-10"
                   />
                 </div>
-                <GlowButton type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Creating account..." : "Sign Up"}
-                </GlowButton>
+                <button type="submit" className="w-full">
+                  <GlowButton className="w-full pointer-events-none" disabled={loading}>
+                    {loading ? "Creating account..." : "Sign Up"}
+                  </GlowButton>
+                </button>
               </form>
             </TabsContent>
           </Tabs>
