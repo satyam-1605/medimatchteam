@@ -701,7 +701,7 @@ const DoctorDirectory = () => {
 
           {/* Main content */}
           {showSchemeOnly ? (
-            <div>
+            <div className={`${viewMode === "split" ? "grid lg:grid-cols-2 gap-6" : ""}`}>
               {schemeDoctorsLoading ? (
                 <div className="text-center py-20 text-muted-foreground">Loading government scheme doctors...</div>
               ) : filteredSchemeDoctors.length === 0 ? (
@@ -723,16 +723,35 @@ const DoctorDirectory = () => {
                   </button>
                 </motion.div>
               ) : (
-                <motion.div
-                  className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {filteredSchemeDoctors.map((doctor, index) => (
-                    <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
-                  ))}
-                </motion.div>
+                <>
+                  {viewMode !== "map" && (
+                    <motion.div
+                      className={`grid gap-5 ${viewMode === "split" ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                      style={viewMode === "split" ? { maxHeight: "70vh", overflowY: "auto", paddingRight: 4 } : {}}
+                    >
+                      {filteredSchemeDoctors.map((doctor, index) => (
+                        <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
+                      ))}
+                    </motion.div>
+                  )}
+                  {viewMode !== "list" && (
+                    <motion.div
+                      className="glass-panel overflow-hidden"
+                      style={{ height: "70vh" }}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 }}
+                    >
+                      <DoctorMap
+                        doctors={schemeMapDoctors}
+                        userLocation={userLocation}
+                      />
+                    </motion.div>
+                  )}
+                </>
               )}
             </div>
           ) : (
