@@ -47,7 +47,7 @@ const DoctorCard = ({ doctor, index = 0, onBook }: DoctorCardProps) => {
 
   return (
     <motion.div
-      className="group flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_24px_hsl(var(--primary)/0.12)]"
+      className="group flex flex-col flex-shrink-0 bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 hover:border-primary/40 hover:shadow-[0_0_24px_hsl(var(--primary)/0.12)]"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04, duration: 0.35 }}
