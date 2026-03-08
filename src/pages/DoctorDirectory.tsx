@@ -601,8 +601,6 @@ const DoctorDirectory = () => {
           )}
         </div>
       </main>
-    </div>
-  );
 
       {bookingDoctor && (
         <BookingDialog
