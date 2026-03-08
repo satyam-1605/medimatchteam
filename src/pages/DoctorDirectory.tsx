@@ -285,11 +285,17 @@ const DoctorDirectory = () => {
     setUserLocation(loc);
     setLocationStatus("granted");
     setLocationSource("manual");
-    // Show short name
     const parts = suggestion.display_name.split(",");
     setLocationName(parts.slice(0, 2).join(",").trim());
     setManualLocationQuery("");
     setLocationSuggestions([]);
+    // Extract state from reverse geocode for scheme filtering
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.lat}&lon=${loc.lng}&format=json`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.address?.state) setUserState(data.address.state);
+      })
+      .catch(() => {});
   }, []);
 
   // Compute real distances if location is available
