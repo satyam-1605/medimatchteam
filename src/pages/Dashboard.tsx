@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   Calendar,
@@ -40,13 +41,6 @@ const healthData = [
   { date: "Jun", value: 79, bp: 117 },
 ];
 
-const symptomCategories = [
-  { name: "Neurological", value: 35, color: "hsl(180, 100%, 50%)" },
-  { name: "Cardiovascular", value: 25, color: "hsl(220, 100%, 60%)" },
-  { name: "Respiratory", value: 20, color: "hsl(142, 76%, 45%)" },
-  { name: "Other", value: 20, color: "hsl(38, 92%, 50%)" },
-];
-
 const weeklySymptoms = [
   { day: "Mon", count: 2 },
   { day: "Tue", count: 4 },
@@ -61,7 +55,7 @@ const healthTimeline = [
   {
     id: 1,
     date: "Jan 15, 2024",
-    title: "Annual Checkup",
+    titleKey: "Annual Checkup",
     type: "appointment",
     description: "Routine health examination completed",
     doctor: "Dr. Sarah Chen",
@@ -69,7 +63,7 @@ const healthTimeline = [
   {
     id: 2,
     date: "Feb 3, 2024",
-    title: "Blood Work Results",
+    titleKey: "Blood Work Results",
     type: "report",
     description: "All markers within normal range",
     doctor: "Lab Services",
@@ -77,7 +71,7 @@ const healthTimeline = [
   {
     id: 3,
     date: "Mar 10, 2024",
-    title: "Symptom Report",
+    titleKey: "Symptom Report",
     type: "symptom",
     description: "Headache and fatigue - referred to neurologist",
     doctor: "AI Analysis",
@@ -85,7 +79,7 @@ const healthTimeline = [
   {
     id: 4,
     date: "Mar 20, 2024",
-    title: "Neurologist Consultation",
+    titleKey: "Neurologist Consultation",
     type: "appointment",
     description: "MRI scheduled, medication prescribed",
     doctor: "Dr. Emily Thompson",
@@ -93,11 +87,19 @@ const healthTimeline = [
 ];
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState("overview");
+
+  const symptomCategories = [
+    { name: t('dashboard.categories.neurological'), value: 35, color: "hsl(180, 100%, 50%)" },
+    { name: t('dashboard.categories.cardiovascular'), value: 25, color: "hsl(220, 100%, 60%)" },
+    { name: t('dashboard.categories.respiratory'), value: 20, color: "hsl(142, 76%, 45%)" },
+    { name: t('dashboard.categories.other'), value: 20, color: "hsl(38, 92%, 50%)" },
+  ];
 
   const stats = [
     {
-      label: "Health Score",
+      label: t('dashboard.healthScore'),
       value: 85,
       suffix: "",
       icon: Heart,
@@ -105,7 +107,7 @@ const Dashboard = () => {
       bgColor: "bg-success/10",
     },
     {
-      label: "Analyses",
+      label: t('dashboard.analyses'),
       value: 12,
       suffix: "",
       icon: Activity,
@@ -113,7 +115,7 @@ const Dashboard = () => {
       bgColor: "bg-primary/10",
     },
     {
-      label: "Appointments",
+      label: t('dashboard.appointments'),
       value: 4,
       suffix: "",
       icon: Calendar,
@@ -121,7 +123,7 @@ const Dashboard = () => {
       bgColor: "bg-accent/10",
     },
     {
-      label: "Reports",
+      label: t('dashboard.reports'),
       value: 8,
       suffix: "",
       icon: FileText,
@@ -145,10 +147,10 @@ const Dashboard = () => {
           >
             <div>
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
-                <span className="headline-gradient">Health Dashboard</span>
+                <span className="headline-gradient">{t('dashboard.title')}</span>
               </h1>
               <p className="text-muted-foreground">
-                Track your health journey and analysis history
+                {t('dashboard.subtitle')}
               </p>
             </div>
             <div className="flex gap-3 mt-4 md:mt-0">
@@ -206,11 +208,11 @@ const Dashboard = () => {
               >
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold text-foreground">
-                    Health Trend
+                    {t('dashboard.healthTrend')}
                   </h3>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <TrendingUp className="w-4 h-4 text-success" />
-                    <span className="text-success">+8% this month</span>
+                    <span className="text-success">{t('dashboard.thisMonth', { percentage: 8 })}</span>
                   </div>
                 </div>
                 <div className="h-64">
@@ -256,7 +258,7 @@ const Dashboard = () => {
                   transition={{ delay: 0.3 }}
                 >
                   <h3 className="text-lg font-semibold text-foreground mb-4">
-                    Symptom Categories
+                    {t('dashboard.symptomCategories')}
                   </h3>
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
@@ -307,7 +309,7 @@ const Dashboard = () => {
                   transition={{ delay: 0.4 }}
                 >
                   <h3 className="text-lg font-semibold text-foreground mb-4">
-                    Weekly Activity
+                    {t('dashboard.weeklyActivity')}
                   </h3>
                   <div className="h-48">
                     <ResponsiveContainer width="100%" height="100%">
@@ -350,18 +352,16 @@ const Dashboard = () => {
             >
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-foreground">
-                  Health Timeline
+                  {t('dashboard.healthTimeline')}
                 </h3>
                 <button className="text-sm text-primary hover:underline">
-                  View All
+                  {t('common.viewAll')}
                 </button>
               </div>
 
               <div className="relative">
-                {/* Timeline line */}
                 <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-border" />
 
-                {/* Timeline items */}
                 <div className="space-y-6">
                   {healthTimeline.map((item, index) => (
                     <motion.div
@@ -371,7 +371,6 @@ const Dashboard = () => {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.4 + index * 0.1 }}
                     >
-                      {/* Timeline dot */}
                       <div
                         className={`absolute left-0 w-6 h-6 rounded-full flex items-center justify-center ${
                           item.type === "appointment"
@@ -396,7 +395,7 @@ const Dashboard = () => {
                           {item.date}
                         </div>
                         <h4 className="font-medium text-foreground">
-                          {item.title}
+                          {item.titleKey}
                         </h4>
                         <p className="text-sm text-muted-foreground mt-1">
                           {item.description}
@@ -413,13 +412,13 @@ const Dashboard = () => {
               {/* Quick Actions */}
               <div className="mt-8 pt-6 border-t border-border">
                 <h4 className="text-sm font-medium text-muted-foreground mb-4">
-                  Quick Actions
+                  {t('dashboard.quickActions')}
                 </h4>
                 <div className="space-y-2">
                   <button className="w-full flex items-center justify-between p-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
                     <div className="flex items-center gap-2">
                       <Plus className="w-4 h-4" />
-                      <span className="text-sm font-medium">New Analysis</span>
+                      <span className="text-sm font-medium">{t('dashboard.newAnalysis')}</span>
                     </div>
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -427,7 +426,7 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2">
                       <Download className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-muted-foreground">
-                        Export Data
+                        {t('dashboard.exportData')}
                       </span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />

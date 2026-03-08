@@ -43,6 +43,7 @@ import { getFirstMeasuresFromLLM, getFallbackFirstMeasures } from "@/services/fi
 import { analyzeSymptoms, type AIAnalysisResponse, type BodyPartDetail } from "@/services/aiAnalysisApi";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -174,7 +175,6 @@ const SPECIALIST_CONFIG: Record<
 
 const ALL_SPECIALIST_KEYS = Object.keys(SPECIALIST_CONFIG);
 
-// Conditions typically treated by each specialist
 const SPECIALIST_CONDITIONS: Record<string, string[]> = {
   Rheumatologist: ["rheumatoid arthritis", "osteoarthritis", "lupus", "joint disorders", "ankylosing spondylitis"],
   Cardiologist: ["heart disease", "hypertension", "arrhythmia", "heart failure", "angina"],
@@ -197,7 +197,6 @@ const SPECIALIST_CONDITIONS: Record<string, string[]> = {
   "General Physician": ["general health check-up", "fever", "infections", "chronic disease management"],
 };
 
-// Government health schemes
 const GOVERNMENT_SCHEMES = [
   {
     id: "ayushman-bharat",
@@ -227,43 +226,41 @@ function getSchemesForSpecialist(specialistKey: string): GovernmentScheme[] {
   );
 }
 
-// Symptom synonyms for text matching
 const SYMPTOM_SYNONYMS: Record<string, string[]> = {
   "joint pain": ["joint pain", "joint ache", "achy joints", "sore joints", "joint stiffness", "arthritis"],
   "morning stiffness": ["morning stiffness", "stiff in the morning", "stiff when i wake"],
   "chest pain": ["chest pain", "chest tightness", "chest discomfort", "pressure in chest"],
   "heart palpitations": ["heart palpitations", "palpitations", "heart racing", "pounding heart"],
-  "headache": ["headache", "head pain", "head hurts", "migraine"],
-  "numbness": ["numbness", "numb", "loss of sensation"],
-  "tingling": ["tingling", "pins and needles", "prickling"],
-  "dizziness": ["dizziness", "dizzy", "lightheaded", "vertigo"],
-  "cough": ["cough", "coughing", "hacking"],
+  headache: ["headache", "head pain", "head hurts", "migraine"],
+  numbness: ["numbness", "numb", "loss of sensation"],
+  tingling: ["tingling", "pins and needles", "prickling"],
+  dizziness: ["dizziness", "dizzy", "lightheaded", "vertigo"],
+  cough: ["cough", "coughing", "hacking"],
   "shortness of breath": ["shortness of breath", "short of breath", "hard to breathe", "breathless"],
-  "injury": ["injury", "injured", "hurt myself", "sprain", "strain"],
-  "swelling": ["swelling", "swollen", "puffy", "inflammation"],
-  "nausea": ["nausea", "nauseous", "queasy", "sick to stomach"],
+  injury: ["injury", "injured", "hurt myself", "sprain", "strain"],
+  swelling: ["swelling", "swollen", "puffy", "inflammation"],
+  nausea: ["nausea", "nauseous", "queasy", "sick to stomach"],
   "abdominal pain": ["abdominal pain", "stomach pain", "stomach ache", "belly pain"],
   "skin rash": ["skin rash", "rash", "red skin", "breakout", "hives"],
-  "itching": ["itching", "itchy", "itch", "pruritus"],
+  itching: ["itching", "itchy", "itch", "pruritus"],
   "eye pain": ["eye pain", "eyes hurt", "sore eyes"],
   "blurred vision": ["blurred vision", "blurry vision", "can't see well"],
   "sore throat": ["sore throat", "throat pain", "throat hurts"],
   "ear pain": ["ear pain", "earache", "ear hurts"],
-  "allergies": ["allergies", "allergic", "allergy", "runny nose"],
-  "sneezing": ["sneezing", "sneeze"],
-  "anxiety": ["anxiety", "anxious", "worried", "nervous", "panic"],
+  allergies: ["allergies", "allergic", "allergy", "runny nose"],
+  sneezing: ["sneezing", "sneeze"],
+  anxiety: ["anxiety", "anxious", "worried", "nervous", "panic"],
   "low mood": ["low mood", "depressed", "depression", "sad", "down"],
   "sleep problems": ["sleep problems", "can't sleep", "insomnia", "trouble sleeping"],
   "back pain": ["back pain", "backache", "lower back pain", "spine pain"],
-  "fever": ["fever", "feverish", "high temperature", "chills"],
-  "fatigue": ["fatigue", "tired", "tiredness", "exhausted", "low energy"],
+  fever: ["fever", "feverish", "high temperature", "chills"],
+  fatigue: ["fatigue", "tired", "tiredness", "exhausted", "low energy"],
   "urinary issues": ["urinary issues", "painful urination", "frequent urination"],
   "weight changes": ["weight changes", "weight gain", "weight loss"],
   "excessive thirst": ["excessive thirst", "very thirsty", "thirsty all the time"],
   "muscle pain": ["muscle pain", "muscle ache", "sore muscles"],
 };
 
-// Specialist symptoms mapping
 const SPECIALIST_SYMPTOMS: Record<string, string[]> = {
   Rheumatologist: ["joint pain", "morning stiffness"],
   Cardiologist: ["chest pain", "heart palpitations"],
@@ -286,7 +283,6 @@ const SPECIALIST_SYMPTOMS: Record<string, string[]> = {
   "General Physician": ["fever", "fatigue"],
 };
 
-// Rule-based recommendation logic
 function getRecommendationFromSymptoms(
   symptomsText: string,
   quickSymptomsList: string[]
@@ -435,35 +431,8 @@ interface LocationState {
 const EMPTY_STRING_ARRAY: string[] = [];
 const EMPTY_BODY_PARTS: BodyPartDetail[] = [];
 
-// Urgency config
-const urgencyConfig = {
-  low: {
-    color: "hsl(142, 76%, 45%)",
-    bgClass: "bg-success/10",
-    borderClass: "border-success/30",
-    textClass: "text-success",
-    label: "Low Priority",
-    description: "Schedule a routine appointment",
-  },
-  moderate: {
-    color: "hsl(38, 92%, 50%)",
-    bgClass: "bg-warning/10",
-    borderClass: "border-warning/30",
-    textClass: "text-warning",
-    label: "Moderate",
-    description: "Consider scheduling within a few days",
-  },
-  high: {
-    color: "hsl(0, 84%, 60%)",
-    bgClass: "bg-destructive/10",
-    borderClass: "border-destructive/30",
-    textClass: "text-destructive",
-    label: "High Priority",
-    description: "Seek evaluation soon",
-  },
-};
-
 const Results = () => {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
@@ -473,7 +442,6 @@ const Results = () => {
   const [talkToNurseOpen, setTalkToNurseOpen] = useState(false);
   const [expandedScheme, setExpandedScheme] = useState<string | null>(null);
   
-  // AI Analysis state
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResponse | null>(null);
   const [aiLoading, setAiLoading] = useState(true);
   const [aiError, setAiError] = useState<string | null>(null);
@@ -488,6 +456,8 @@ const Results = () => {
   const medications = state?.medications ?? EMPTY_STRING_ARRAY;
   
   const ruleBasedResults = getRecommendationFromSymptoms(symptomsText, quickSymptomsList);
+
+  const currentLanguage = i18n.language || 'en';
 
   // AI Analysis effect
   useEffect(() => {
@@ -517,6 +487,7 @@ const Results = () => {
       age,
       gender,
       medications,
+      language: currentLanguage,
     })
       .then((response) => {
         if (cancelled) return;
@@ -532,13 +503,13 @@ const Results = () => {
       });
 
     return () => { cancelled = true; };
-  }, [useAI, symptomsText, quickSymptomsList, bodyPartsDetailed, age, gender, medications]);
+  }, [useAI, symptomsText, quickSymptomsList, bodyPartsDetailed, age, gender, medications, currentLanguage]);
 
   // First measures effect
   useEffect(() => {
     let cancelled = false;
     setFirstMeasuresLoading(true);
-    getFirstMeasuresFromLLM(symptomsText, quickSymptomsList).then((out) => {
+    getFirstMeasuresFromLLM(symptomsText, quickSymptomsList, currentLanguage).then((out) => {
       if (cancelled) return;
       if ("text" in out) {
         setFirstMeasures(out.text);
@@ -550,7 +521,7 @@ const Results = () => {
       setFirstMeasuresLoading(false);
     });
     return () => { cancelled = true; };
-  }, [symptomsText, quickSymptomsList]);
+  }, [symptomsText, quickSymptomsList, currentLanguage]);
 
   // Compute display results
   const results = useAI && aiAnalysis 
@@ -587,7 +558,29 @@ const Results = () => {
     alert("PDF Report Generated! (Demo)");
   };
 
-  const urgencyInfo = urgencyConfig[results.urgency];
+  const urgencyKey = results.urgency;
+  const urgencyConfig = {
+    low: {
+      color: "hsl(142, 76%, 45%)",
+      bgClass: "bg-success/10",
+      borderClass: "border-success/30",
+      textClass: "text-success",
+    },
+    moderate: {
+      color: "hsl(38, 92%, 50%)",
+      bgClass: "bg-warning/10",
+      borderClass: "border-warning/30",
+      textClass: "text-warning",
+    },
+    high: {
+      color: "hsl(0, 84%, 60%)",
+      bgClass: "bg-destructive/10",
+      borderClass: "border-destructive/30",
+      textClass: "text-destructive",
+    },
+  };
+
+  const urgencyInfo = urgencyConfig[urgencyKey];
   const Icon = results.primaryRecommendation.icon;
 
   return (
@@ -613,7 +606,7 @@ const Results = () => {
                   exit={{ opacity: 0, scale: 0.9 }}
                 >
                   <Loader2 className="w-5 h-5 text-primary animate-spin" />
-                  <span className="text-primary font-medium">AI Analyzing Your Symptoms...</span>
+                  <span className="text-primary font-medium">{t('results.aiAnalyzing')}</span>
                 </motion.div>
               ) : (
                 <motion.div
@@ -624,7 +617,7 @@ const Results = () => {
                 >
                   <CheckCircle2 className="w-5 h-5 text-success" />
                   <span className="text-success font-medium">
-                    {useAI && aiAnalysis ? "AI Analysis Complete" : "Analysis Complete"}
+                    {useAI && aiAnalysis ? t('results.aiComplete') : t('results.analysisComplete')}
                   </span>
                 </motion.div>
               )}
@@ -641,18 +634,18 @@ const Results = () => {
             >
               <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border">
                 <Calendar className="w-4 h-4 text-primary" />
-                <span className="text-sm"><span className="text-muted-foreground">Age:</span> <span className="font-medium">{age}</span></span>
+                <span className="text-sm"><span className="text-muted-foreground">{t('results.age')}:</span> <span className="font-medium">{age}</span></span>
               </div>
               {gender && (
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border">
                   <User className="w-4 h-4 text-primary" />
-                  <span className="text-sm"><span className="text-muted-foreground">Gender:</span> <span className="font-medium capitalize">{gender}</span></span>
+                  <span className="text-sm"><span className="text-muted-foreground">{t('results.gender')}:</span> <span className="font-medium capitalize">{gender}</span></span>
                 </div>
               )}
               {quickSymptomsList.length > 0 && (
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border">
                   <Activity className="w-4 h-4 text-primary" />
-                  <span className="text-sm"><span className="text-muted-foreground">Symptoms:</span> <span className="font-medium">{quickSymptomsList.length}</span></span>
+                  <span className="text-sm"><span className="text-muted-foreground">{t('results.symptoms')}:</span> <span className="font-medium">{quickSymptomsList.length}</span></span>
                 </div>
               )}
             </motion.div>
@@ -670,7 +663,7 @@ const Results = () => {
                   <AlertTriangle className="w-6 h-6 text-destructive" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-destructive text-lg mb-2">Emergency Symptoms Detected</h3>
+                  <h3 className="font-bold text-destructive text-lg mb-2">{t('results.emergencyDetected')}</h3>
                   <ul className="space-y-1">
                     {aiAnalysis.emergencyFlags.map((flag, index) => (
                       <li key={index} className="text-sm text-destructive/90 flex items-center gap-2">
@@ -680,7 +673,7 @@ const Results = () => {
                     ))}
                   </ul>
                   <p className="mt-3 text-sm text-destructive/80 font-medium">
-                    If symptoms are severe, call emergency services immediately.
+                    {t('results.emergencyCallMsg')}
                   </p>
                 </div>
               </div>
@@ -725,12 +718,10 @@ const Results = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.15 }}
               >
-                {/* Glow effect */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                 
                 <div className="relative p-6 md:p-8">
                   <div className="flex flex-col md:flex-row items-center gap-6">
-                    {/* Icon */}
                     <motion.div
                       className="w-24 h-24 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center"
                       initial={{ scale: 0 }}
@@ -740,14 +731,13 @@ const Results = () => {
                       <Icon className="w-12 h-12 text-primary" />
                     </motion.div>
 
-                    {/* Content */}
                     <div className="flex-1 text-center md:text-left">
                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
                         <span className="px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-semibold">
-                          Top Recommendation
+                          {t('results.topRecommendation')}
                         </span>
                         <span className="px-3 py-1 rounded-full bg-success/20 text-success text-xs font-semibold">
-                          {results.primaryRecommendation.matchPercentage}% Match
+                          {t('results.matchPercentage', { percentage: results.primaryRecommendation.matchPercentage })}
                         </span>
                       </div>
                       <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
@@ -758,18 +748,16 @@ const Results = () => {
                       </p>
                     </div>
 
-                    {/* Urgency Badge */}
                     <div className="flex flex-col items-center gap-2">
                       <div className={`w-20 h-20 rounded-full ${urgencyInfo.bgClass} ${urgencyInfo.borderClass} border-2 flex flex-col items-center justify-center`}>
                         <span className={`text-2xl font-bold ${urgencyInfo.textClass}`}>
                           {results.urgencyPercentage}%
                         </span>
                       </div>
-                      <span className={`text-xs font-medium ${urgencyInfo.textClass}`}>{urgencyInfo.label}</span>
+                      <span className={`text-xs font-medium ${urgencyInfo.textClass}`}>{t(`results.urgency.${urgencyKey}`)}</span>
                     </div>
                   </div>
 
-                  {/* Quick Actions */}
                   <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-border/50">
                     <Link to="/doctors" className="flex-1 min-w-[200px]">
                       <motion.button
@@ -778,7 +766,7 @@ const Results = () => {
                         whileTap={{ scale: 0.98 }}
                       >
                         <MapPin className="w-5 h-5" />
-                        Find Nearby Specialists
+                        {t('results.findNearbySpecialists')}
                         <ArrowRight className="w-4 h-4" />
                       </motion.button>
                     </Link>
@@ -789,7 +777,7 @@ const Results = () => {
                       whileTap={{ scale: 0.98 }}
                     >
                       <MessageCircle className="w-5 h-5 text-primary" />
-                      Talk to Nurse
+                      {t('results.talkToNurse')}
                     </motion.button>
                   </div>
                 </div>
@@ -803,12 +791,11 @@ const Results = () => {
               >
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  Alternative Specialists
+                  {t('results.alternativeSpecialists')}
                 </h3>
                 <div className="grid md:grid-cols-2 gap-4">
                   {results.alternatives.slice(0, 4).map((alt, index) => {
                     const AltIcon = alt.icon;
-                    // Get matching AI alternative for reasoning
                     const aiAlt = useAI && aiAnalysis?.alternatives?.find(
                       a => a.specialty.toLowerCase().includes(alt.specialty.toLowerCase().split(' ')[0]) ||
                            alt.specialty.toLowerCase().includes(a.specialty.toLowerCase().split(' ')[0])
@@ -843,18 +830,16 @@ const Results = () => {
                                 />
                               </div>
                             </div>
-                            {/* Reasoning */}
                             <p className="text-xs text-muted-foreground mt-3 leading-relaxed line-clamp-3">
                               {reasoning}
                             </p>
-                            {/* Age & Gender specific considerations if using AI */}
                             {useAI && (aiAnalysis?.ageSpecificConsiderations || aiAnalysis?.genderSpecificConsiderations) && (
                               <div className="mt-3 pt-3 border-t border-border/50 space-y-2">
                                 {aiAnalysis?.ageSpecificConsiderations && (
                                   <div className="flex items-start gap-2">
                                     <User className="w-3.5 h-3.5 text-accent-foreground mt-0.5 flex-shrink-0" />
                                     <p className="text-xs text-accent-foreground/80 leading-relaxed">
-                                      <span className="font-medium">Age:</span> {aiAnalysis.ageSpecificConsiderations}
+                                      <span className="font-medium">{t('results.age')}:</span> {aiAnalysis.ageSpecificConsiderations}
                                     </p>
                                   </div>
                                 )}
@@ -862,7 +847,7 @@ const Results = () => {
                                   <div className="flex items-start gap-2">
                                     <User className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" />
                                     <p className="text-xs text-primary/80 leading-relaxed">
-                                      <span className="font-medium">Gender:</span> {aiAnalysis.genderSpecificConsiderations}
+                                      <span className="font-medium">{t('results.gender')}:</span> {aiAnalysis.genderSpecificConsiderations}
                                     </p>
                                   </div>
                                 )}
@@ -880,7 +865,6 @@ const Results = () => {
               {useAI && aiAnalysis && (
                 <div className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
-                    {/* Differential Diagnosis */}
                     {aiAnalysis.differentialDiagnosis.length > 0 && (
                       <motion.div
                         className="rounded-xl bg-card border border-border p-6"
@@ -890,7 +874,7 @@ const Results = () => {
                       >
                         <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                           <FlaskConical className="w-5 h-5 text-primary" />
-                          Possible Conditions
+                          {t('results.possibleConditions')}
                           <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">AI</span>
                         </h3>
                         <div className="space-y-2">
@@ -912,7 +896,6 @@ const Results = () => {
                       </motion.div>
                     )}
 
-                    {/* Next Steps */}
                     {aiAnalysis.nextSteps.length > 0 && (
                       <motion.div
                         className="rounded-xl bg-card border border-border p-6"
@@ -922,7 +905,7 @@ const Results = () => {
                       >
                         <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                           <CheckCircle2 className="w-5 h-5 text-success" />
-                          Recommended Next Steps
+                          {t('results.recommendedNextSteps')}
                         </h3>
                         <div className="space-y-2">
                           {aiAnalysis.nextSteps.slice(0, 5).map((step, index) => (
@@ -944,7 +927,6 @@ const Results = () => {
                     )}
                   </div>
 
-                  {/* Age & Gender Specific Considerations */}
                   {(aiAnalysis.ageSpecificConsiderations || aiAnalysis.genderSpecificConsiderations) && (
                     <motion.div
                       className="rounded-xl bg-gradient-to-br from-accent/10 via-card to-primary/5 border border-accent/20 p-6"
@@ -954,7 +936,7 @@ const Results = () => {
                     >
                       <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                         <User className="w-5 h-5 text-accent-foreground" />
-                        Personalized Health Considerations
+                        {t('results.personalizedConsiderations')}
                         <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">AI</span>
                       </h3>
                       <div className="grid md:grid-cols-2 gap-4">
@@ -969,7 +951,7 @@ const Results = () => {
                               <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
                                 <Clock className="w-4 h-4 text-primary" />
                               </div>
-                              <h4 className="font-medium text-foreground text-sm">Age-Specific Insights</h4>
+                              <h4 className="font-medium text-foreground text-sm">{t('results.ageSpecificInsights')}</h4>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                               {aiAnalysis.ageSpecificConsiderations}
@@ -987,7 +969,7 @@ const Results = () => {
                               <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
                                 <User className="w-4 h-4 text-accent-foreground" />
                               </div>
-                              <h4 className="font-medium text-foreground text-sm">Gender-Specific Insights</h4>
+                              <h4 className="font-medium text-foreground text-sm">{t('results.genderSpecificInsights')}</h4>
                             </div>
                             <p className="text-sm text-muted-foreground leading-relaxed">
                               {aiAnalysis.genderSpecificConsiderations}
@@ -1009,7 +991,7 @@ const Results = () => {
               >
                 <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-primary" />
-                  First Measures to Take
+                  {t('results.firstMeasuresToTake')}
                   {firstMeasuresFromAI && (
                     <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">AI</span>
                   )}
@@ -1041,10 +1023,10 @@ const Results = () => {
                   >
                     <h3 className="font-semibold text-foreground mb-2 flex items-center gap-2">
                       <Shield className="w-5 h-5 text-primary" />
-                      Government Health Schemes
+                      {t('results.governmentSchemes')}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Conditions like <span className="text-foreground font-medium">{conditions.slice(0, 3).join(", ")}</span> may be covered.
+                      {t('results.conditionsCovered', { conditions: conditions.slice(0, 3).join(", ") })}
                     </p>
                     <div className="grid gap-3">
                       {schemes.map((scheme) => (
@@ -1064,7 +1046,7 @@ const Results = () => {
                               </div>
                               <div>
                                 <h4 className="font-medium text-foreground">{scheme.shortName}</h4>
-                                <span className="text-xs text-success font-medium">Covered</span>
+                                <span className="text-xs text-success font-medium">{t('results.covered')}</span>
                               </div>
                             </div>
                             <ChevronRight className={`w-5 h-5 text-muted-foreground transition-transform ${expandedScheme === scheme.id ? "rotate-90" : ""}`} />
@@ -1080,7 +1062,7 @@ const Results = () => {
                                 <div className="px-4 pb-4 pt-0 space-y-2 text-sm">
                                   <p className="text-muted-foreground">{scheme.description}</p>
                                   <p className="text-muted-foreground">
-                                    <span className="font-medium text-foreground">Eligibility:</span> {scheme.eligibilitySummary}
+                                    <span className="font-medium text-foreground">{t('results.eligibility')}:</span> {scheme.eligibilitySummary}
                                   </p>
                                   {scheme.officialUrl && (
                                     <a
@@ -1090,7 +1072,7 @@ const Results = () => {
                                       className="inline-flex items-center gap-1 text-primary hover:underline"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      Check eligibility <ExternalLink className="w-3.5 h-3.5" />
+                                      {t('results.checkEligibility')} <ExternalLink className="w-3.5 h-3.5" />
                                     </a>
                                   )}
                                 </div>
@@ -1123,7 +1105,7 @@ const Results = () => {
                   ) : (
                     <FileDown className="w-5 h-5 text-primary" />
                   )}
-                  <span className="font-medium">{isGeneratingPDF ? "Generating..." : "Download PDF Report"}</span>
+                  <span className="font-medium">{isGeneratingPDF ? t('results.generating') : t('results.downloadReport')}</span>
                 </motion.button>
 
                 <Link to="/symptoms" className="block">
@@ -1133,7 +1115,7 @@ const Results = () => {
                     whileTap={{ scale: 0.98 }}
                   >
                     <RefreshCw className="w-5 h-5" />
-                    <span className="font-medium">Start New Analysis</span>
+                    <span className="font-medium">{t('results.newAnalysis')}</span>
                   </motion.button>
                 </Link>
               </motion.div>
@@ -1147,7 +1129,7 @@ const Results = () => {
               >
                 <Info className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-warning/90 leading-relaxed">
-                  <strong>Disclaimer:</strong> This AI-powered analysis is for informational purposes only and should not replace professional medical advice. Always consult with a qualified healthcare provider for diagnosis and treatment.
+                  <strong>{t('results.disclaimerLabel')}:</strong> {t('results.disclaimer')}
                 </p>
               </motion.div>
             </div>
@@ -1161,16 +1143,16 @@ const Results = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Crown className="w-5 h-5 text-warning" />
-              Premium Feature
+              {t('results.premiumFeature')}
             </DialogTitle>
             <DialogDescription>
-              Talk to a qualified nurse for personalized health advice.
+              {t('results.premiumNurseDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="rounded-xl bg-warning/10 border border-warning/30 p-4">
               <p className="text-sm text-warning/90">
-                This feature requires a premium subscription. Upgrade to get 24/7 access to healthcare professionals.
+                {t('results.premiumUpgradeMsg')}
               </p>
             </div>
             <div className="flex gap-3">
@@ -1178,10 +1160,10 @@ const Results = () => {
                 onClick={() => setTalkToNurseOpen(false)}
                 className="flex-1 px-4 py-2 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors"
               >
-                Maybe Later
+                {t('results.maybeLater')}
               </button>
               <button className="flex-1 px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
-                Upgrade Now
+                {t('results.upgradeNow')}
               </button>
             </div>
           </div>
