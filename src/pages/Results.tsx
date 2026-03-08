@@ -997,10 +997,34 @@ const Results = () => {
                   )}
                 </h3>
                 {firstMeasuresLoading ? (
-                  <div className="space-y-2">
-                    <div className="h-3 w-full rounded bg-muted animate-pulse" />
-                    <div className="h-3 w-4/5 rounded bg-muted animate-pulse" />
-                    <div className="h-3 w-3/4 rounded bg-muted animate-pulse" />
+                  <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <motion.div
+                        key={i}
+                        className="flex items-start gap-3"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                      >
+                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <div className="w-3 h-3 rounded-full bg-primary/20 animate-pulse" />
+                        </div>
+                        <div className="flex-1 space-y-1.5">
+                          <div
+                            className="h-3 rounded-full bg-muted animate-pulse"
+                            style={{ width: `${85 - i * 8}%`, animationDelay: `${i * 150}ms` }}
+                          />
+                          <div
+                            className="h-3 rounded-full bg-muted/60 animate-pulse"
+                            style={{ width: `${60 - i * 5}%`, animationDelay: `${i * 150 + 75}ms` }}
+                          />
+                        </div>
+                      </motion.div>
+                    ))}
+                    <div className="flex items-center gap-2 pt-2">
+                      <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                      <span className="text-xs text-muted-foreground">{t('results.aiAnalyzing')}</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
