@@ -12,6 +12,7 @@ interface SymptomAnalysisRequest {
   age: number;
   gender: string;
   medications: string[];
+  language?: string;
 }
 
 interface SpecialistRecommendation {
@@ -53,10 +54,13 @@ serve(async (req) => {
     const requestData: SymptomAnalysisRequest = await req.json();
     console.log('Received symptom analysis request:', JSON.stringify(requestData, null, 2));
 
-    const { symptoms, quickSymptoms, bodyParts, age, gender, medications } = requestData;
+    const { symptoms, quickSymptoms, bodyParts, age, gender, medications, language } = requestData;
 
-    // Build comprehensive prompt
-    const systemPrompt = buildSystemPrompt();
+    // Build comprehensive prompt with language instruction
+    const langInstruction = language && language !== 'en' 
+      ? `\n\nIMPORTANT: You MUST write ALL text values (reasoning, conditions, nextSteps, considerations) in ${language === 'hi' ? 'Hindi (हिन्दी)' : language === 'es' ? 'Spanish (Español)' : language}. Keep JSON keys in English but all string values must be in the specified language.`
+      : '';
+    const systemPrompt = buildSystemPrompt() + langInstruction;
     const userPrompt = buildUserPrompt(symptoms, quickSymptoms, bodyParts, age, gender, medications);
 
     console.log('Sending request to Lovable AI Gateway...');

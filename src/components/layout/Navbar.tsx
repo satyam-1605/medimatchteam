@@ -35,7 +35,7 @@ const Navbar = () => {
     { path: "/results", label: t("nav.results") },
     { path: "/doctors", label: t("nav.doctors") },
     { path: "/dashboard", label: t("nav.dashboard") },
-    ...(session ? [{ path: "/my-bookings", label: "My Bookings" }] : []),
+    ...(session ? [{ path: "/my-bookings", label: t("common.myBookings") }] : []),
   ];
 
   return (
@@ -47,13 +47,8 @@ const Navbar = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <motion.div
-              className="relative"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+            <motion.div className="relative" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Activity className="w-8 h-8 text-primary" />
               <div className="absolute inset-0 bg-primary/30 blur-lg" />
             </motion.div>
@@ -62,20 +57,14 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`nav-link ${location.pathname === link.path ? "active" : ""}`}
-              >
+              <Link key={link.path} to={link.path} className={`nav-link ${location.pathname === link.path ? "active" : ""}`}>
                 {link.label}
               </Link>
             ))}
           </div>
 
-          {/* Language Selector & Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <LanguageSelector variant="compact" />
             {session ? (
@@ -91,44 +80,32 @@ const Navbar = () => {
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Logout
+                  {t("common.logout")}
                 </button>
               </>
             ) : (
               <Link to="/auth">
                 <GlowButton size="sm">
                   <LogIn className="w-4 h-4 mr-1.5" />
-                  Login
+                  {t("common.login")}
                 </GlowButton>
               </Link>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-foreground p-2"
-            onClick={() => setIsOpen(!isOpen)}
-          >
+          <button className="md:hidden text-foreground p-2" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
-        <motion.div
-          className="md:hidden overflow-hidden"
-          initial={{ height: 0 }}
-          animate={{ height: isOpen ? "auto" : 0 }}
-          transition={{ duration: 0.3 }}
-        >
+        <motion.div className="md:hidden overflow-hidden" initial={{ height: 0 }} animate={{ height: isOpen ? "auto" : 0 }} transition={{ duration: 0.3 }}>
           <div className="py-4 space-y-2">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 className={`block px-4 py-2 rounded-lg transition-colors ${
-                  location.pathname === link.path
-                    ? "bg-primary/20 text-primary"
-                    : "text-muted-foreground hover:bg-muted"
+                  location.pathname === link.path ? "bg-primary/20 text-primary" : "text-muted-foreground hover:bg-muted"
                 }`}
                 onClick={() => setIsOpen(false)}
               >
@@ -138,16 +115,13 @@ const Navbar = () => {
             <div className="pt-4 flex flex-col gap-3">
               <LanguageSelector variant="dropdown" />
               {session ? (
-                <button
-                  onClick={() => { handleLogout(); setIsOpen(false); }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
-                >
-                  <LogOut className="w-4 h-4" /> Logout
+                <button onClick={() => { handleLogout(); setIsOpen(false); }} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+                  <LogOut className="w-4 h-4" /> {t("common.logout")}
                 </button>
               ) : (
                 <Link to="/auth" onClick={() => setIsOpen(false)}>
                   <GlowButton size="sm" className="w-full">
-                    <LogIn className="w-4 h-4 mr-1.5" /> Login
+                    <LogIn className="w-4 h-4 mr-1.5" /> {t("common.login")}
                   </GlowButton>
                 </Link>
               )}

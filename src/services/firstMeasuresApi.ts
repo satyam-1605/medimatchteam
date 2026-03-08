@@ -11,11 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function getFirstMeasuresFromLLM(
   symptomsText: string,
-  quickSymptoms: string[]
+  quickSymptoms: string[],
+  language?: string
 ): Promise<{ text: string } | { error: string }> {
   try {
     const { data, error } = await supabase.functions.invoke("first-measures", {
-      body: { symptomsText, quickSymptoms },
+      body: { symptomsText, quickSymptoms, language },
     });
 
     if (error) {

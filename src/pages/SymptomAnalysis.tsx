@@ -1,6 +1,7 @@
 import { useState, useEffect, Suspense, lazy } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Mic,
   MicOff,
@@ -27,12 +28,11 @@ import EmergencyOverlay, { checkForEmergency } from "@/components/symptoms/Emerg
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-// Lazy load the 3D body diagram for performance
 const BodyDiagram3D = lazy(() => import("@/components/symptoms/BodyDiagram3D"));
 
 type SymptomType = "pain" | "swelling" | "numbness" | "rash" | "normal";
 
-const symptomCategories = {
+const symptomCategoryKeys = {
   "General": ["Fever", "Fatigue", "Weight Changes", "Excessive Thirst"],
   "Head & Face": ["Headache", "Dizziness", "Blurred Vision", "Eye Pain", "Ear Pain"],
   "Respiratory": ["Cough", "Shortness of Breath", "Sore Throat", "Sneezing"],
@@ -45,8 +45,25 @@ const symptomCategories = {
   "Other": ["Allergies", "Injury", "Urinary Issues"],
 };
 
+// Map English symptom names to translation keys
+const symptomToKey: Record<string, string> = {
+  "Headache": "headache", "Fever": "fever", "Cough": "cough", "Fatigue": "fatigue",
+  "Nausea": "nausea", "Dizziness": "dizziness", "Back Pain": "backPain",
+  "Chest Pain": "chestPain", "Shortness of Breath": "shortnessOfBreath",
+  "Joint Pain": "jointPain", "Morning Stiffness": "morningStiffness",
+  "Numbness": "numbness", "Injury": "injury", "Swelling": "swelling",
+  "Abdominal Pain": "abdominalPain", "Skin Rash": "skinRash", "Itching": "itching",
+  "Eye Pain": "eyePain", "Blurred Vision": "blurredVision", "Sore Throat": "soreThroat",
+  "Ear Pain": "earPain", "Allergies": "allergies", "Sneezing": "sneezing",
+  "Anxiety": "anxiety", "Low Mood": "lowMood", "Sleep Problems": "sleepProblems",
+  "Tingling": "tingling", "Muscle Pain": "musclePain",
+  "Heart Palpitations": "heartPalpitations", "Urinary Issues": "urinaryIssues",
+  "Weight Changes": "weightChanges", "Excessive Thirst": "excessiveThirst",
+};
+
 const SymptomAnalysis = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const [symptoms, setSymptoms] = useState("");
   const [selectedQuickSymptoms, setSelectedQuickSymptoms] = useState<string[]>([]);
   const [selectedBodyParts, setSelectedBodyParts] = useState<string[]>([]);
@@ -63,7 +80,6 @@ const SymptomAnalysis = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>("General");
 
-  // Check for emergency keywords
   useEffect(() => {
     const allText = `${symptoms} ${selectedQuickSymptoms.join(" ")}`;
     const detected = checkForEmergency(allText);
@@ -75,17 +91,13 @@ const SymptomAnalysis = () => {
 
   const toggleQuickSymptom = (symptom: string) => {
     setSelectedQuickSymptoms((prev) =>
-      prev.includes(symptom)
-        ? prev.filter((s) => s !== symptom)
-        : [...prev, symptom]
+      prev.includes(symptom) ? prev.filter((s) => s !== symptom) : [...prev, symptom]
     );
   };
 
   const toggleBodyPart = (part: string) => {
     setSelectedBodyParts((prev) =>
-      prev.includes(part)
-        ? prev.filter((p) => p !== part)
-        : [...prev, part]
+      prev.includes(part) ? prev.filter((p) => p !== part) : [...prev, part]
     );
   };
 
@@ -133,18 +145,33 @@ const SymptomAnalysis = () => {
         age,
         gender,
         medications,
+        language: i18n.language,
       },
     });
   };
 
   const hasInput = symptoms || selectedQuickSymptoms.length > 0 || Object.keys(selectedBodyParts3D).length > 0 || selectedBodyParts.length > 0;
 
-  // Progress steps
-  const steps = [
-    { id: 1, label: "Symptoms", icon: Activity, complete: selectedQuickSymptoms.length > 0 || symptoms.length > 0 },
-    { id: 2, label: "Body Map", icon: Heart, complete: selectedBodyParts.length > 0 || Object.keys(selectedBodyParts3D).length > 0 },
-    { id: 3, label: "Profile", icon: User, complete: gender !== "" },
+  const genderOptions = [
+    { value: "Male", label: t("symptoms.male") },
+    { value: "Female", label: t("symptoms.female") },
+    { value: "Other", label: t("symptoms.other") },
   ];
+
+  const steps = [
+    { id: 1, label: t("symptoms.progressSymptoms"), icon: Activity, complete: selectedQuickSymptoms.length > 0 || symptoms.length > 0 },
+    { id: 2, label: t("symptoms.progressBodyMap"), icon: Heart, complete: selectedBodyParts.length > 0 || Object.keys(selectedBodyParts3D).length > 0 },
+    { id: 3, label: t("symptoms.progressProfile"), icon: User, complete: gender !== "" },
+  ];
+
+  const getSymptomLabel = (symptom: string) => {
+    const key = symptomToKey[symptom];
+    return key ? t(`symptoms.quickSymptoms.${key}`) : symptom;
+  };
+
+  const getCategoryLabel = (category: string) => {
+    return t(`symptoms.categories.${category}`, category);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -166,13 +193,13 @@ const SymptomAnalysis = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
               <Stethoscope className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">AI-Powered Symptom Analysis</span>
+              <span className="text-sm text-primary font-medium">{t("symptoms.headerBadge")}</span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              <span className="headline-gradient">Tell us how you feel</span>
+              <span className="headline-gradient">{t("symptoms.headerTitle")}</span>
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-              Describe your symptoms and we'll match you with the right specialist
+              {t("symptoms.headerSubtitle")}
             </p>
           </motion.div>
 
@@ -188,20 +215,12 @@ const SymptomAnalysis = () => {
                 <div key={step.id} className="flex items-center">
                   <div className={cn(
                     "flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300",
-                    step.complete 
-                      ? "bg-primary/20 text-primary" 
-                      : "text-muted-foreground"
+                    step.complete ? "bg-primary/20 text-primary" : "text-muted-foreground"
                   )}>
-                    {step.complete ? (
-                      <CheckCircle2 className="w-4 h-4" />
-                    ) : (
-                      <step.icon className="w-4 h-4" />
-                    )}
+                    {step.complete ? <CheckCircle2 className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
                     <span className="text-sm font-medium hidden sm:inline">{step.label}</span>
                   </div>
-                  {index < steps.length - 1 && (
-                    <ArrowRight className="w-4 h-4 mx-2 text-muted-foreground/50" />
-                  )}
+                  {index < steps.length - 1 && <ArrowRight className="w-4 h-4 mx-2 text-muted-foreground/50" />}
                 </div>
               ))}
             </div>
@@ -211,7 +230,6 @@ const SymptomAnalysis = () => {
           <div className="grid lg:grid-cols-5 gap-6">
             {/* Left Column - Symptoms Input */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Main Symptom Input Card */}
               <motion.div
                 className="rounded-3xl bg-gradient-to-br from-card via-card to-card/80 border border-border/50 overflow-hidden"
                 initial={{ opacity: 0, y: 20 }}
@@ -224,15 +242,15 @@ const SymptomAnalysis = () => {
                       <Stethoscope className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-foreground">Describe Your Symptoms</h2>
-                      <p className="text-sm text-muted-foreground">Be as detailed as possible</p>
+                      <h2 className="text-lg font-semibold text-foreground">{t("symptoms.describeSymptoms")}</h2>
+                      <p className="text-sm text-muted-foreground">{t("symptoms.beDetailed")}</p>
                     </div>
                   </div>
                   <div className="relative">
                     <textarea
                       value={symptoms}
                       onChange={(e) => setSymptoms(e.target.value)}
-                      placeholder="Example: I've had a persistent headache for the past 3 days, along with sensitivity to light..."
+                      placeholder={t("symptoms.placeholder")}
                       className="w-full h-28 bg-muted/30 border border-border/50 rounded-2xl p-4 pr-14 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all resize-none text-base"
                     />
                     <button
@@ -248,49 +266,36 @@ const SymptomAnalysis = () => {
                     </button>
                   </div>
                   {isRecording && (
-                    <motion.div
-                      className="mt-3 flex items-center gap-2 text-sm text-destructive"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
+                    <motion.div className="mt-3 flex items-center gap-2 text-sm text-destructive" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                       <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
-                      Recording... Speak clearly
+                      {t("symptoms.recording")}
                     </motion.div>
                   )}
                 </div>
 
                 {/* Quick Symptoms by Category */}
                 <div className="p-6">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-4">Quick Add Symptoms</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-4">{t("symptoms.quickAdd")}</h3>
                   <div className="space-y-3">
-                    {Object.entries(symptomCategories).map(([category, categorySymptoms]) => (
+                    {Object.entries(symptomCategoryKeys).map(([category, categorySymptoms]) => (
                       <div key={category} className="rounded-xl border border-border/30 overflow-hidden">
                         <button
                           onClick={() => setExpandedCategory(expandedCategory === category ? null : category)}
                           className="w-full flex items-center justify-between p-3 hover:bg-muted/30 transition-colors"
                         >
-                          <span className="text-sm font-medium text-foreground">{category}</span>
+                          <span className="text-sm font-medium text-foreground">{getCategoryLabel(category)}</span>
                           <div className="flex items-center gap-2">
                             {categorySymptoms.some(s => selectedQuickSymptoms.includes(s)) && (
                               <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs">
                                 {categorySymptoms.filter(s => selectedQuickSymptoms.includes(s)).length}
                               </span>
                             )}
-                            <ChevronDown className={cn(
-                              "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                              expandedCategory === category && "rotate-180"
-                            )} />
+                            <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", expandedCategory === category && "rotate-180")} />
                           </div>
                         </button>
                         <AnimatePresence>
                           {expandedCategory === category && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: "auto", opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="overflow-hidden"
-                            >
+                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
                               <div className="p-3 pt-0 flex flex-wrap gap-2">
                                 {categorySymptoms.map((symptom) => (
                                   <button
@@ -303,7 +308,7 @@ const SymptomAnalysis = () => {
                                         : "bg-muted/30 border-border/50 text-muted-foreground hover:border-primary/50 hover:text-foreground"
                                     )}
                                   >
-                                    {symptom}
+                                    {getSymptomLabel(symptom)}
                                   </button>
                                 ))}
                               </div>
@@ -319,23 +324,12 @@ const SymptomAnalysis = () => {
                 {selectedQuickSymptoms.length > 0 && (
                   <div className="px-6 pb-6">
                     <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20">
-                      <p className="text-xs text-muted-foreground mb-2">Selected symptoms:</p>
+                      <p className="text-xs text-muted-foreground mb-2">{t("symptoms.selectedSymptoms")}</p>
                       <div className="flex flex-wrap gap-2">
                         {selectedQuickSymptoms.map((symptom) => (
-                          <motion.span
-                            key={symptom}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
-                          >
-                            {symptom}
-                            <button
-                              onClick={() => toggleQuickSymptom(symptom)}
-                              className="hover:text-destructive transition-colors"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
+                          <motion.span key={symptom} className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
+                            {getSymptomLabel(symptom)}
+                            <button onClick={() => toggleQuickSymptom(symptom)} className="hover:text-destructive transition-colors"><X className="w-3 h-3" /></button>
                           </motion.span>
                         ))}
                       </div>
@@ -356,128 +350,73 @@ const SymptomAnalysis = () => {
                     <User className="w-5 h-5 text-accent" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-foreground">Your Profile</h2>
-                    <p className="text-sm text-muted-foreground">Help us personalize recommendations</p>
+                    <h2 className="text-lg font-semibold text-foreground">{t("symptoms.yourProfile")}</h2>
+                    <p className="text-sm text-muted-foreground">{t("symptoms.personalizeRec")}</p>
                   </div>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-6">
-                  {/* Age */}
                   <div>
                     <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
                       <Calendar className="w-4 h-4 text-primary" />
-                      Age
-                      <span className="ml-auto text-primary font-semibold">{age} years</span>
+                      {t("symptoms.age")}
+                      <span className="ml-auto text-primary font-semibold">{age} {t("common.years")}</span>
                     </label>
                     <div className="relative">
-                      <input
-                        type="range"
-                        min="1"
-                        max="100"
-                        value={age}
-                        onChange={(e) => setAge(Number(e.target.value))}
-                        className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                        <span>1</span>
-                        <span>100</span>
-                      </div>
+                      <input type="range" min="1" max="100" value={age} onChange={(e) => setAge(Number(e.target.value))} className="w-full h-2 bg-muted rounded-full appearance-none cursor-pointer accent-primary" />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-2"><span>1</span><span>100</span></div>
                     </div>
                   </div>
-
-                  {/* Gender */}
                   <div>
                     <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-3">
                       <User className="w-4 h-4 text-primary" />
-                      Gender
+                      {t("symptoms.gender")}
                     </label>
                     <div className="flex gap-2">
-                      {["Male", "Female", "Other"].map((g) => (
+                      {genderOptions.map((g) => (
                         <button
-                          key={g}
-                          onClick={() => setGender(g)}
+                          key={g.value}
+                          onClick={() => setGender(g.value)}
                           className={cn(
                             "flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border",
-                            gender === g
+                            gender === g.value
                               ? "bg-primary/20 border-primary text-primary shadow-sm shadow-primary/20"
                               : "bg-muted/30 border-border/50 text-muted-foreground hover:border-primary/50"
                           )}
                         >
-                          {g}
+                          {g.label}
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Medical History Accordion */}
+                {/* Medical History */}
                 <div className="mt-6 pt-6 border-t border-border/30">
-                  <button
-                    onClick={() => setShowMedicalHistory(!showMedicalHistory)}
-                    className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-primary transition-colors"
-                  >
+                  <button onClick={() => setShowMedicalHistory(!showMedicalHistory)} className="w-full flex items-center justify-between text-sm font-medium text-foreground hover:text-primary transition-colors">
                     <span className="flex items-center gap-2">
                       <Pill className="w-4 h-4" />
-                      Medical History & Medications
-                      {medications.length > 0 && (
-                        <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs">
-                          {medications.length}
-                        </span>
-                      )}
+                      {t("symptoms.medicalHistory")}
+                      {medications.length > 0 && <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs">{medications.length}</span>}
                     </span>
-                    {showMedicalHistory ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
+                    {showMedicalHistory ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>
                   <AnimatePresence>
                     {showMedicalHistory && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
                         <div className="pt-4 space-y-4">
                           <div>
-                            <label className="block text-sm text-muted-foreground mb-2">
-                              Current Medications
-                            </label>
+                            <label className="block text-sm text-muted-foreground mb-2">{t("symptoms.currentMedications")}</label>
                             <div className="flex gap-2">
-                              <input
-                                type="text"
-                                value={newMedication}
-                                onChange={(e) => setNewMedication(e.target.value)}
-                                onKeyPress={(e) => e.key === "Enter" && addMedication()}
-                                placeholder="Add medication..."
-                                className="flex-1 bg-muted/30 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50"
-                              />
-                              <Button
-                                onClick={addMedication}
-                                variant="outline"
-                                size="icon"
-                                className="rounded-xl border-primary/50 text-primary hover:bg-primary/10"
-                              >
-                                <Plus className="w-4 h-4" />
-                              </Button>
+                              <input type="text" value={newMedication} onChange={(e) => setNewMedication(e.target.value)} onKeyPress={(e) => e.key === "Enter" && addMedication()} placeholder={t("symptoms.addMedication")} className="flex-1 bg-muted/30 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50" />
+                              <Button onClick={addMedication} variant="outline" size="icon" className="rounded-xl border-primary/50 text-primary hover:bg-primary/10"><Plus className="w-4 h-4" /></Button>
                             </div>
                             {medications.length > 0 && (
                               <div className="flex flex-wrap gap-2 mt-3">
                                 {medications.map((med) => (
-                                  <motion.span
-                                    key={med}
-                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-sm"
-                                    initial={{ opacity: 0, scale: 0.8 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                  >
+                                  <motion.span key={med} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent/10 text-accent text-sm" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}>
                                     {med}
-                                    <button
-                                      onClick={() => removeMedication(med)}
-                                      className="hover:text-destructive transition-colors"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
+                                    <button onClick={() => removeMedication(med)} className="hover:text-destructive transition-colors"><X className="w-3 h-3" /></button>
                                   </motion.span>
                                 ))}
                               </div>
@@ -492,49 +431,20 @@ const SymptomAnalysis = () => {
             </div>
 
             {/* Right Column - Body Diagram */}
-            <motion.div
-              className="lg:col-span-2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
+            <motion.div className="lg:col-span-2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
               <div className="sticky top-24 rounded-3xl bg-gradient-to-br from-card via-card to-card/80 border border-border/50 overflow-hidden">
                 <div className="p-6 border-b border-border/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2.5 rounded-xl bg-primary/10">
-                        <Heart className="w-5 h-5 text-primary" />
-                      </div>
+                      <div className="p-2.5 rounded-xl bg-primary/10"><Heart className="w-5 h-5 text-primary" /></div>
                       <div>
-                        <h2 className="text-lg font-semibold text-foreground">Body Map</h2>
-                        <p className="text-sm text-muted-foreground">Click affected areas</p>
+                        <h2 className="text-lg font-semibold text-foreground">{t("symptoms.bodyMap")}</h2>
+                        <p className="text-sm text-muted-foreground">{t("symptoms.clickAffectedAreas")}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/50">
-                      <button
-                        onClick={() => setUse3DView(false)}
-                        className={cn(
-                          "p-2 rounded-lg transition-all duration-200",
-                          !use3DView
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        )}
-                        title="2D View"
-                      >
-                        <LayoutGrid className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setUse3DView(true)}
-                        className={cn(
-                          "p-2 rounded-lg transition-all duration-200",
-                          use3DView
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        )}
-                        title="3D View"
-                      >
-                        <Box className="w-4 h-4" />
-                      </button>
+                      <button onClick={() => setUse3DView(false)} className={cn("p-2 rounded-lg transition-all duration-200", !use3DView ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")} title={t("symptoms.view2D")}><LayoutGrid className="w-4 h-4" /></button>
+                      <button onClick={() => setUse3DView(true)} className={cn("p-2 rounded-lg transition-all duration-200", use3DView ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")} title={t("symptoms.view3D")}><Box className="w-4 h-4" /></button>
                     </div>
                   </div>
                 </div>
@@ -542,59 +452,31 @@ const SymptomAnalysis = () => {
                 <div className="p-6">
                   <AnimatePresence mode="wait">
                     {use3DView ? (
-                      <motion.div
-                        key="3d"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <Suspense
-                          fallback={
-                            <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-2xl">
-                              <div className="text-center">
-                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                                <p className="text-sm text-muted-foreground">Loading 3D Model...</p>
-                              </div>
+                      <motion.div key="3d" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}>
+                        <Suspense fallback={
+                          <div className="h-[400px] flex items-center justify-center bg-muted/20 rounded-2xl">
+                            <div className="text-center">
+                              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                              <p className="text-sm text-muted-foreground">{t("symptoms.loading3D")}</p>
                             </div>
-                          }
-                        >
-                          <BodyDiagram3D
-                            selectedParts={selectedBodyParts3D}
-                            onPartClick={handleBodyPart3DClick}
-                          />
+                          </div>
+                        }>
+                          <BodyDiagram3D selectedParts={selectedBodyParts3D} onPartClick={handleBodyPart3DClick} />
                         </Suspense>
                       </motion.div>
                     ) : (
-                      <motion.div
-                        key="2d"
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <BodyDiagram
-                          selectedParts={selectedBodyParts}
-                          onPartClick={toggleBodyPart}
-                        />
+                      <motion.div key="2d" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}>
+                        <BodyDiagram selectedParts={selectedBodyParts} onPartClick={toggleBodyPart} />
                       </motion.div>
                     )}
                   </AnimatePresence>
 
-                  {/* Selected Body Parts */}
                   {(selectedBodyParts.length > 0 || Object.keys(selectedBodyParts3D).length > 0) && (
-                    <motion.div
-                      className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-2xl"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <p className="text-xs text-muted-foreground mb-2">Selected areas:</p>
+                    <motion.div className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-2xl" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                      <p className="text-xs text-muted-foreground mb-2">{t("symptoms.selectedAreas")}</p>
                       <div className="flex flex-wrap gap-2">
                         {(use3DView ? Object.keys(selectedBodyParts3D) : selectedBodyParts).map((part) => (
-                          <span
-                            key={part}
-                            className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium capitalize"
-                          >
+                          <span key={part} className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium capitalize">
                             {part.replace(/([A-Z])/g, " $1").trim()}
                           </span>
                         ))}
@@ -609,12 +491,7 @@ const SymptomAnalysis = () => {
       </main>
 
       {/* Fixed Analyze Button */}
-      <motion.div
-        className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
+      <motion.div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
         <div className="container mx-auto max-w-xl">
           <Button
             onClick={handleAnalyze}
@@ -627,20 +504,16 @@ const SymptomAnalysis = () => {
             )}
           >
             {isAnalyzing ? (
-              <motion.span
-                className="flex items-center gap-3"
-                animate={{ opacity: [1, 0.5, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
+              <motion.span className="flex items-center gap-3" animate={{ opacity: [1, 0.5, 1] }} transition={{ duration: 1, repeat: Infinity }}>
                 <span className="w-2 h-2 rounded-full bg-current animate-bounce" />
                 <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: "0.1s" }} />
                 <span className="w-2 h-2 rounded-full bg-current animate-bounce" style={{ animationDelay: "0.2s" }} />
-                Analyzing...
+                {t("symptoms.analyzingButton")}
               </motion.span>
             ) : (
               <>
                 <Send className="w-5 h-5 mr-2" />
-                Find My Specialist
+                {t("symptoms.analyzeButton")}
               </>
             )}
           </Button>

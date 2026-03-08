@@ -11,7 +11,10 @@ serve(async (req) => {
   }
 
   try {
-    const { symptomsText, quickSymptoms } = await req.json();
+    const { symptomsText, quickSymptoms, language } = await req.json();
+    const langInstruction = language && language !== 'en' 
+      ? ` Respond entirely in ${language === 'hi' ? 'Hindi (हिन्दी)' : language === 'es' ? 'Spanish (Español)' : language}.`
+      : '';
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -30,7 +33,7 @@ serve(async (req) => {
 
     const prompt = `You are a helpful health assistant. The user has reported these symptoms: "${symptomSummary}"
 
-Give 4 to 5 brief, safety-first measures the person should take at home before seeing a doctor. Use simple language. If any symptom suggests an emergency (e.g. chest pain, severe shortness of breath), say so clearly first. Format as a short numbered list. Do not diagnose. Keep total response under 200 words.`;
+Give 4 to 5 brief, safety-first measures the person should take at home before seeing a doctor. Use simple language. If any symptom suggests an emergency (e.g. chest pain, severe shortness of breath), say so clearly first. Format as a short numbered list. Do not diagnose. Keep total response under 200 words.${langInstruction}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
