@@ -12,6 +12,7 @@ export interface SymptomAnalysisRequest {
   age: number;
   gender: string;
   medications: string[];
+  language?: string;
 }
 
 export interface SpecialistRecommendation {
