@@ -169,6 +169,9 @@ const SymptomAnalysis = () => {
     setIsAnalyzing(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const bodyPartsData = getAllBodyParts();
+    const reportTexts = uploadedReports
+      .filter((r) => r.extractedText)
+      .map((r) => r.extractedText as string);
     navigate("/results", {
       state: {
         symptoms,
@@ -179,11 +182,12 @@ const SymptomAnalysis = () => {
         gender,
         medications,
         language: i18n.language,
+        reportTexts,
       },
     });
   };
 
-  const hasInput = symptoms || selectedQuickSymptoms.length > 0 || Object.keys(selectedBodyParts3D).length > 0 || selectedBodyParts.length > 0;
+  const hasInput = symptoms || selectedQuickSymptoms.length > 0 || Object.keys(selectedBodyParts3D).length > 0 || selectedBodyParts.length > 0 || uploadedReports.length > 0;
 
   const genderOptions = [
     { value: "Male", label: t("symptoms.male") },
