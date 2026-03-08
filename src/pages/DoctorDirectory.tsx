@@ -140,7 +140,9 @@ const DoctorDirectory = () => {
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
   const [showSchemeOnly, setShowSchemeOnly] = useState(false);
   const [selectedSchemeFilter, setSelectedSchemeFilter] = useState<string>("all");
-  const [availableSchemes, setAvailableSchemes] = useState<{ short_name: string; name: string }[]>([]);
+  const [schemeCategory, setSchemeCategory] = useState<"all" | "central" | "state">("all");
+  const [availableSchemes, setAvailableSchemes] = useState<{ short_name: string; name: string; is_national: boolean; state: string }[]>([]);
+  const [userState, setUserState] = useState<string | null>(null);
   const [schemeDoctors, setSchemeDoctors] = useState<SchemeDoctor[]>([]);
   const [schemeDoctorsLoading, setSchemeDoctorsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -193,6 +195,9 @@ const DoctorDirectory = () => {
             if (data.address) {
               const parts = [data.address.suburb || data.address.neighbourhood, data.address.city || data.address.town, data.address.state].filter(Boolean);
               setLocationName(parts.join(", ") || `${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}`);
+              if (data.address.state) {
+                setUserState(data.address.state);
+              }
             }
           })
           .catch(() => {});
@@ -219,10 +224,10 @@ const DoctorDirectory = () => {
       // Fetch all schemes for the filter dropdown
       const { data: schemesData } = await supabase
         .from("government_schemes_db")
-        .select("short_name, name")
+        .select("short_name, name, is_national, state")
         .order("is_national", { ascending: false })
         .order("state");
-      if (schemesData) setAvailableSchemes(schemesData);
+      if (schemesData) setAvailableSchemes(schemesData as any);
 
       const { data, error } = await supabase
         .from("scheme_doctors")
@@ -231,7 +236,7 @@ const DoctorDirectory = () => {
           hospital:hospitals!inner(id, name, address, city, state, latitude, longitude, phone),
           hospitals!inner(
             hospital_schemes(
-              scheme:government_schemes_db(short_name, name, coverage, description, eligibility, official_url)
+              scheme:government_schemes_db(short_name, name, coverage, description, eligibility, official_url, is_national, state)
             )
           )
         `);
@@ -280,11 +285,17 @@ const DoctorDirectory = () => {
     setUserLocation(loc);
     setLocationStatus("granted");
     setLocationSource("manual");
-    // Show short name
     const parts = suggestion.display_name.split(",");
     setLocationName(parts.slice(0, 2).join(",").trim());
     setManualLocationQuery("");
     setLocationSuggestions([]);
+    // Extract state from reverse geocode for scheme filtering
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${loc.lat}&lon=${loc.lng}&format=json`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.address?.state) setUserState(data.address.state);
+      })
+      .catch(() => {});
   }, []);
 
   // Compute real distances if location is available
@@ -348,7 +359,15 @@ const DoctorDirectory = () => {
       const matchesScheme =
         selectedSchemeFilter === "all" ||
         d.schemes.some((s) => s.short_name === selectedSchemeFilter);
-      return matchesSearch && matchesSpecialty && matchesDistance && matchesScheme;
+      // Category filter: only show doctors whose hospital has schemes matching the category
+      const matchesCategory = schemeCategory === "all" || d.schemes.some((s) => {
+        const schemeInfo = availableSchemes.find((as) => as.short_name === s.short_name);
+        if (!schemeInfo) return false;
+        if (schemeCategory === "central") return schemeInfo.is_national;
+        if (schemeCategory === "state") return !schemeInfo.is_national;
+        return true;
+      });
+      return matchesSearch && matchesSpecialty && matchesDistance && matchesScheme && matchesCategory;
     })
     .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
@@ -602,19 +621,57 @@ const DoctorDirectory = () => {
                 <Shield className="w-3.5 h-3.5" />
                 Free Treatment
               </button>
-              {showSchemeOnly && availableSchemes.length > 0 && (
-                <select
-                  value={selectedSchemeFilter}
-                  onChange={(e) => setSelectedSchemeFilter(e.target.value)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-card text-foreground focus:outline-none focus:border-emerald-500 transition-all"
-                >
-                  <option value="all">All Schemes</option>
-                  {availableSchemes.map((s) => (
-                    <option key={s.short_name} value={s.short_name}>
-                      {s.short_name} — {s.name}
-                    </option>
+              {showSchemeOnly && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Central / State category toggle */}
+                  {(["all", "central", "state"] as const).map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => { setSchemeCategory(cat); setSelectedSchemeFilter("all"); }}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all ${
+                        schemeCategory === cat
+                          ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                          : "bg-card border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {cat === "all" ? "All" : cat === "central" ? "Central" : userState || "State"}
+                    </button>
                   ))}
-                </select>
+                  {/* Filtered scheme dropdown */}
+                  <select
+                    value={selectedSchemeFilter}
+                    onChange={(e) => setSelectedSchemeFilter(e.target.value)}
+                    className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-card text-foreground focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition-all max-w-[220px]"
+                  >
+                    <option value="all">All Schemes</option>
+                    {schemeCategory !== "state" && (
+                      <optgroup label="🏛️ Central Government Schemes">
+                        {availableSchemes.filter(s => s.is_national).map((s) => (
+                          <option key={s.short_name} value={s.short_name}>
+                            {s.short_name} — {s.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    {schemeCategory !== "central" && (
+                      <optgroup label={`🏠 State Schemes${userState ? ` (${userState})` : ""}`}>
+                        {availableSchemes
+                          .filter(s => !s.is_national)
+                          .filter(s => !userState || s.state.toLowerCase().includes(userState.toLowerCase()) || schemeCategory === "all")
+                          .map((s) => (
+                            <option key={s.short_name} value={s.short_name}>
+                              {s.short_name} — {s.name} ({s.state})
+                            </option>
+                          ))}
+                      </optgroup>
+                    )}
+                  </select>
+                  {userState && (
+                    <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                      📍 {userState}
+                    </span>
+                  )}
+                </div>
               )}
             </div>
             {!showSchemeOnly && (
