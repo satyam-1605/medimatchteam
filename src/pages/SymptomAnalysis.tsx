@@ -20,6 +20,7 @@ import {
   ArrowRight,
   Plus,
   X,
+  FileText,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
@@ -29,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { useToast } from "@/hooks/use-toast";
+import MedicalReportUpload, { type UploadedReport } from "@/components/symptoms/MedicalReportUpload";
 
 const BodyDiagram3D = lazy(() => import("@/components/symptoms/BodyDiagram3D"));
 
@@ -76,6 +78,7 @@ const SymptomAnalysis = () => {
   const [showMedicalHistory, setShowMedicalHistory] = useState(false);
   const [medications, setMedications] = useState<string[]>([]);
   const [newMedication, setNewMedication] = useState("");
+  const [uploadedReports, setUploadedReports] = useState<UploadedReport[]>([]);
   const [showEmergency, setShowEmergency] = useState(false);
   const [emergencySymptoms, setEmergencySymptoms] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -166,6 +169,9 @@ const SymptomAnalysis = () => {
     setIsAnalyzing(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
     const bodyPartsData = getAllBodyParts();
+    const reportTexts = uploadedReports
+      .filter((r) => r.extractedText)
+      .map((r) => r.extractedText as string);
     navigate("/results", {
       state: {
         symptoms,
@@ -176,11 +182,12 @@ const SymptomAnalysis = () => {
         gender,
         medications,
         language: i18n.language,
+        reportTexts,
       },
     });
   };
 
-  const hasInput = symptoms || selectedQuickSymptoms.length > 0 || Object.keys(selectedBodyParts3D).length > 0 || selectedBodyParts.length > 0;
+  const hasInput = symptoms || selectedQuickSymptoms.length > 0 || Object.keys(selectedBodyParts3D).length > 0 || selectedBodyParts.length > 0 || uploadedReports.length > 0;
 
   const genderOptions = [
     { value: "Male", label: t("symptoms.male") },
@@ -308,6 +315,16 @@ const SymptomAnalysis = () => {
                       )}
                     </motion.div>
                   )}
+                </div>
+
+                {/* Medical Report Upload */}
+                <div className="px-6 pb-2 pt-4 border-t border-border/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-medium text-foreground">Attach Medical Reports</h3>
+                    <span className="text-xs text-muted-foreground">(optional)</span>
+                  </div>
+                  <MedicalReportUpload reports={uploadedReports} onReportsChange={setUploadedReports} />
                 </div>
 
                 {/* Quick Symptoms by Category */}

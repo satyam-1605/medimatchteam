@@ -13,6 +13,7 @@ export interface SymptomAnalysisRequest {
   gender: string;
   medications: string[];
   language?: string;
+  reportTexts?: string[];
 }
 
 export interface SpecialistRecommendation {
@@ -52,7 +53,6 @@ export async function analyzeSymptoms(
     throw new Error("No data returned from analysis");
   }
 
-  // Check if the response contains an error
   if (data.error) {
     console.error("AI analysis error:", data.error, data.details || data.message);
     throw new Error(data.error);

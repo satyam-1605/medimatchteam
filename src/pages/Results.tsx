@@ -454,6 +454,7 @@ const Results = () => {
   const age = state?.age ?? 30;
   const gender = state?.gender ?? "";
   const medications = state?.medications ?? EMPTY_STRING_ARRAY;
+  const reportTexts = (state as any)?.reportTexts ?? EMPTY_STRING_ARRAY;
   
   const ruleBasedResults = getRecommendationFromSymptoms(symptomsText, quickSymptomsList);
 
@@ -488,6 +489,7 @@ const Results = () => {
       gender,
       medications,
       language: currentLanguage,
+      reportTexts: reportTexts.length > 0 ? reportTexts : undefined,
     })
       .then((response) => {
         if (cancelled) return;
