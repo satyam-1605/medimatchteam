@@ -24,11 +24,6 @@ const Navbar = () => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
   const navLinks = [
     { path: "/", label: t("nav.home") },
     { path: "/symptoms", label: t("nav.symptoms") },
