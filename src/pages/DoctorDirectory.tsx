@@ -145,6 +145,8 @@ const DoctorDirectory = () => {
   const pillsRef = useRef<HTMLDivElement>(null);
   const [bookingDoctor, setBookingDoctor] = useState<any>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const DOCTORS_PER_PAGE = 9;
 
   const handleBookClick = async (doctor: any) => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -329,6 +331,14 @@ const DoctorDirectory = () => {
   }));
 
   const activeCount = showSchemeOnly ? filteredSchemeDoctors.length : sortedDoctors.length;
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedSpecialty, sortBy, maxDistance, showSchemeOnly, selectedSchemeFilter, schemeCategory]);
+
+  // Pagination helpers
+  const totalPages = Math.ceil((showSchemeOnly ? filteredSchemeDoctors.length : sortedDoctors.length) / DOCTORS_PER_PAGE);
+  const paginatedDoctors = sortedDoctors.slice((currentPage - 1) * DOCTORS_PER_PAGE, currentPage * DOCTORS_PER_PAGE);
+  const paginatedSchemeDoctors = filteredSchemeDoctors.slice((currentPage - 1) * DOCTORS_PER_PAGE, currentPage * DOCTORS_PER_PAGE);
 
   return (
     <div className="min-h-screen bg-background">
@@ -656,57 +666,67 @@ const DoctorDirectory = () => {
             ) : filteredSchemeDoctors.length === 0 ? (
               <EmptyState icon={Shield} title={t("doctors.noSchemeDoctors")} hint={t("doctors.noSchemeDoctorsHint")} onClear={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }} clearLabel={t("doctors.clearAllFilters")} />
             ) : (
-              <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
-                {viewMode !== "map" && (
-                  <div
-                    className={viewMode === "split"
-                      ? "w-1/2 space-y-4 overflow-y-auto pr-2"
-                      : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-                    }
-                  >
-                    {filteredSchemeDoctors.map((doctor, index) => (
-                      <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
-                    ))}
-                  </div>
+              <>
+                <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
+                  {viewMode !== "map" && (
+                    <div
+                      className={viewMode === "split"
+                        ? "w-1/2 space-y-4 overflow-y-auto pr-2"
+                        : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                      }
+                    >
+                      {(viewMode === "list" ? paginatedSchemeDoctors : filteredSchemeDoctors).map((doctor, index) => (
+                        <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
+                      ))}
+                    </div>
+                  )}
+                  {viewMode !== "list" && (
+                    <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
+                      <DoctorMap doctors={schemeMapDoctors} userLocation={userLocation} />
+                    </div>
+                  )}
+                </div>
+                {viewMode === "list" && totalPages > 1 && (
+                  <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 )}
-                {viewMode !== "list" && (
-                  <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
-                    <DoctorMap doctors={schemeMapDoctors} userLocation={userLocation} />
-                  </div>
-                )}
-              </div>
+              </>
             )
           ) : (
             /* Regular doctors view */
             sortedDoctors.length === 0 ? (
               <EmptyState icon={Search} title={t("doctors.noSpecialistsFound")} hint={t("doctors.noSpecialistsHint")} onClear={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }} clearLabel={t("doctors.clearAllFilters")} />
             ) : (
-              <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
-                {viewMode !== "map" && (
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={selectedSpecialty + sortBy + maxDistance}
-                      className={viewMode === "split"
-                        ? "w-1/2 space-y-4 overflow-y-auto pr-2"
-                        : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
-                      }
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {sortedDoctors.map((doctor, index) => (
-                        <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
-                      ))}
-                    </motion.div>
-                  </AnimatePresence>
+              <>
+                <div className={viewMode === "split" ? "flex gap-5 h-[70vh]" : ""}>
+                  {viewMode !== "map" && (
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={selectedSpecialty + sortBy + maxDistance + currentPage}
+                        className={viewMode === "split"
+                          ? "w-1/2 space-y-4 overflow-y-auto pr-2"
+                          : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                        }
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        {(viewMode === "list" ? paginatedDoctors : sortedDoctors).map((doctor, index) => (
+                          <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
+                        ))}
+                      </motion.div>
+                    </AnimatePresence>
+                  )}
+                  {viewMode !== "list" && (
+                    <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
+                      <DoctorMap doctors={mapDoctors} userLocation={userLocation} />
+                    </div>
+                  )}
+                </div>
+                {viewMode === "list" && totalPages > 1 && (
+                  <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 )}
-                {viewMode !== "list" && (
-                  <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2 h-full" : "h-[70vh]"}`}>
-                    <DoctorMap doctors={mapDoctors} userLocation={userLocation} />
-                  </div>
-                )}
-              </div>
+              </>
             )
           )}
         </div>
@@ -735,6 +755,69 @@ function EmptyState({ icon: Icon, title, hint, onClear, clearLabel }: { icon: an
       <button onClick={onClear} className="text-sm text-primary hover:underline font-medium">
         {clearLabel}
       </button>
+    </motion.div>
+  );
+}
+
+/* Pagination controls */
+function PaginationControls({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (p: number) => void }) {
+  const getVisiblePages = () => {
+    const pages: (number | "...")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (currentPage > 3) pages.push("...");
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("...");
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  return (
+    <motion.div
+      className="flex items-center justify-center gap-1.5 pt-6 pb-2"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 }}
+    >
+      <button
+        onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+        disabled={currentPage === 1}
+        className="flex items-center justify-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </button>
+      {getVisiblePages().map((page, i) =>
+        page === "..." ? (
+          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-xs text-muted-foreground">…</span>
+        ) : (
+          <button
+            key={page}
+            onClick={() => onPageChange(page as number)}
+            className={`w-9 h-9 rounded-lg text-xs font-medium transition-all ${
+              currentPage === page
+                ? "bg-primary/20 text-primary border border-primary/30 shadow-[0_0_10px_hsl(var(--primary)/0.15)]"
+                : "border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+            }`}
+          >
+            {page}
+          </button>
+        )
+      )}
+      <button
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        disabled={currentPage === totalPages}
+        className="flex items-center justify-center w-9 h-9 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors disabled:opacity-30 disabled:pointer-events-none"
+      >
+        <ChevronRight className="w-4 h-4" />
+      </button>
+      <span className="ml-3 text-[11px] text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </span>
     </motion.div>
   );
 }
