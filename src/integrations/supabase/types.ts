@@ -199,22 +199,46 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
+          allergies: string | null
+          blood_group: string | null
           created_at: string | null
+          emergency_contact: string | null
           full_name: string | null
+          gender: string | null
           id: string
+          medical_conditions: string | null
+          notification_preferences: Json | null
           phone: string | null
+          state: string | null
         }
         Insert: {
+          age?: number | null
+          allergies?: string | null
+          blood_group?: string | null
           created_at?: string | null
+          emergency_contact?: string | null
           full_name?: string | null
+          gender?: string | null
           id: string
+          medical_conditions?: string | null
+          notification_preferences?: Json | null
           phone?: string | null
+          state?: string | null
         }
         Update: {
+          age?: number | null
+          allergies?: string | null
+          blood_group?: string | null
           created_at?: string | null
+          emergency_contact?: string | null
           full_name?: string | null
+          gender?: string | null
           id?: string
+          medical_conditions?: string | null
+          notification_preferences?: Json | null
           phone?: string | null
+          state?: string | null
         }
         Relationships: []
       }
