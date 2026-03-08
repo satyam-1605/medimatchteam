@@ -278,6 +278,8 @@ function BodyPartMesh({
     return geo;
   }, [size, partData.shape]);
 
+  if (!shouldShow && layer === "organ") return null;
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     onClick();
