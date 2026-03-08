@@ -602,6 +602,20 @@ const DoctorDirectory = () => {
                 <Shield className="w-3.5 h-3.5" />
                 Free Treatment
               </button>
+              {showSchemeOnly && availableSchemes.length > 0 && (
+                <select
+                  value={selectedSchemeFilter}
+                  onChange={(e) => setSelectedSchemeFilter(e.target.value)}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-card text-foreground focus:outline-none focus:border-emerald-500 transition-all"
+                >
+                  <option value="all">All Schemes</option>
+                  {availableSchemes.map((s) => (
+                    <option key={s.short_name} value={s.short_name}>
+                      {s.short_name} — {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             {!showSchemeOnly && (
               <div className="flex items-center gap-1.5">
