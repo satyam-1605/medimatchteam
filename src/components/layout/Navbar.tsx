@@ -1,15 +1,32 @@
 import { motion } from "framer-motion";
-import { Link, useLocation } from "react-router-dom";
-import { Activity, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Activity, Menu, X, LogIn, LogOut, CalendarCheck } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { supabase } from "@/integrations/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
 import LanguageSelector from "@/components/ui/LanguageSelector";
+import type { Session } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
+  const [session, setSession] = useState<Session | null>(null);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   const navLinks = [
     { path: "/", label: t("nav.home") },
@@ -17,6 +34,7 @@ const Navbar = () => {
     { path: "/results", label: t("nav.results") },
     { path: "/doctors", label: t("nav.doctors") },
     { path: "/dashboard", label: t("nav.dashboard") },
+    ...(session ? [{ path: "/my-bookings", label: "My Bookings" }] : []),
   ];
 
   return (
@@ -56,12 +74,32 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Language Selector & CTA Button */}
+          {/* Language Selector & Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <LanguageSelector variant="compact" />
-            <Link to="/symptoms">
-              <GlowButton size="sm">{t("nav.startAnalysis")}</GlowButton>
-            </Link>
+            {session ? (
+              <>
+                <Link to="/my-bookings">
+                  <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    <CalendarCheck className="w-4 h-4" />
+                  </button>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/auth">
+                <GlowButton size="sm">
+                  <LogIn className="w-4 h-4 mr-1.5" />
+                  Login
+                </GlowButton>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -97,9 +135,20 @@ const Navbar = () => {
             ))}
             <div className="pt-4 flex flex-col gap-3">
               <LanguageSelector variant="dropdown" />
-              <Link to="/symptoms" onClick={() => setIsOpen(false)}>
-                <GlowButton size="sm" className="w-full">{t("nav.startAnalysis")}</GlowButton>
-              </Link>
+              {session ? (
+                <button
+                  onClick={() => { handleLogout(); setIsOpen(false); }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-4 h-4" /> Logout
+                </button>
+              ) : (
+                <Link to="/auth" onClick={() => setIsOpen(false)}>
+                  <GlowButton size="sm" className="w-full">
+                    <LogIn className="w-4 h-4 mr-1.5" /> Login
+                  </GlowButton>
+                </Link>
+              )}
             </div>
           </div>
         </motion.div>

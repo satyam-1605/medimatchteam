@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -18,7 +19,9 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import DoctorCard from "@/components/doctors/DoctorCard";
+import BookingDialog from "@/components/doctors/BookingDialog";
 import DoctorMap from "@/components/doctors/DoctorMap";
+import { supabase } from "@/integrations/supabase/client";
 
 const specialties = [
   "All Specialties",
@@ -128,6 +131,7 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 const DoctorDirectory = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("All Specialties");
   const [sortBy, setSortBy] = useState("rating");
@@ -135,13 +139,27 @@ const DoctorDirectory = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationStatus, setLocationStatus] = useState<"idle" | "loading" | "granted" | "denied">("idle");
   const [locationName, setLocationName] = useState("Detecting location...");
-  const [maxDistance, setMaxDistance] = useState<number>(25); // km
+  const [maxDistance, setMaxDistance] = useState<number>(25);
   const [manualLocationQuery, setManualLocationQuery] = useState("");
   const [locationSuggestions, setLocationSuggestions] = useState<Array<{ display_name: string; lat: string; lon: string }>>([]);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [locationSource, setLocationSource] = useState<"gps" | "manual">("gps");
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pillsRef = useRef<HTMLDivElement>(null);
+
+  // Booking state
+  const [bookingDoctor, setBookingDoctor] = useState<any>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
+
+  const handleBookClick = async (doctor: any) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate("/auth");
+      return;
+    }
+    setBookingDoctor(doctor);
+    setBookingOpen(true);
+  };
 
   const scrollPills = (dir: "left" | "right") => {
     pillsRef.current?.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
@@ -534,7 +552,7 @@ const DoctorDirectory = () => {
                   style={viewMode === "split" ? { maxHeight: "70vh", overflowY: "auto", paddingRight: 4 } : {}}
                 >
                   {sortedDoctors.map((doctor, index) => (
-                    <DoctorCard key={doctor.id} doctor={doctor} index={index} />
+                    <DoctorCard key={doctor.id} doctor={doctor} index={index} onBook={handleBookClick} />
                   ))}
                 </motion.div>
               </AnimatePresence>
@@ -583,6 +601,16 @@ const DoctorDirectory = () => {
           )}
         </div>
       </main>
+    </div>
+  );
+
+      {bookingDoctor && (
+        <BookingDialog
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+          doctor={bookingDoctor}
+        />
+      )}
     </div>
   );
 };
