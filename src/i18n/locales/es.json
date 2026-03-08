@@ -20,7 +20,11 @@
     "delete": "Borrar",
     "download": "Descargar",
     "export": "Exportar",
-    "selectLanguage": "Seleccionar idioma"
+    "selectLanguage": "Seleccionar idioma",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión",
+    "myBookings": "Mis Reservas",
+    "years": "años"
   },
   "nav": {
     "home": "Inicio",
@@ -33,7 +37,7 @@
   "home": {
     "tagline": "Navegación de Salud Impulsada por IA",
     "headline": "Encuentra Tu Especialista Médico Ideal",
-    "subheadline": "Análisis de Síntomas y Emparejamiento con Especialistas Impulsado por IA. Obtén recomendaciones precisas en segundos, no horas.",
+    "subheadline": "Análisis de Síntomas y Emparejamiento con Especialistas Impulsado por IA. Obtén recomendaciones precisas en segundos.",
     "startFreeAnalysis": "Iniciar Análisis Gratis",
     "browseSpecialists": "Explorar Especialistas",
     "howItWorks": "Cómo Funciona MediMatch",
@@ -41,15 +45,15 @@
     "features": {
       "aiAnalysis": {
         "title": "Análisis de Síntomas con IA",
-        "description": "Algoritmos avanzados de aprendizaje automático analizan tus síntomas para proporcionar información y recomendaciones precisas."
+        "description": "Algoritmos avanzados analizan tus síntomas para proporcionar información y recomendaciones precisas."
       },
       "instantMatching": {
-        "title": "Emparejamiento Instantáneo con Especialistas",
-        "description": "Nuestro sistema de emparejamiento inteligente te conecta con los especialistas médicos más adecuados en segundos."
+        "title": "Emparejamiento Instantáneo",
+        "description": "Nuestro sistema inteligente te conecta con los especialistas más adecuados en segundos."
       },
       "emergencyDetection": {
         "title": "Detección de Emergencias",
-        "description": "El monitoreo en tiempo real detecta síntomas críticos y proporciona orientación de emergencia inmediata cuando es necesario."
+        "description": "Monitoreo en tiempo real detecta síntomas críticos y proporciona orientación inmediata."
       }
     },
     "stats": {
@@ -68,7 +72,7 @@
     },
     "cta": {
       "ready": "¿Listo para Encontrar Tu Pareja Perfecta?",
-      "ctaSubtitle": "Comienza tu análisis de síntomas gratuito ahora y encuentra al especialista adecuado en minutos."
+      "ctaSubtitle": "Comienza tu análisis gratuito ahora y encuentra al especialista adecuado en minutos."
     },
     "footer": {
       "copyright": "© 2024 MediMatch. Navegación de Salud Impulsada por IA."
@@ -76,9 +80,13 @@
   },
   "symptoms": {
     "title": "Análisis de Síntomas",
-    "subtitle": "Describe tus síntomas en detalle para la recomendación de especialista más precisa",
+    "subtitle": "Describe tus síntomas en detalle para la recomendación más precisa",
+    "headerBadge": "Análisis de Síntomas con IA",
+    "headerTitle": "Cuéntanos cómo te sientes",
+    "headerSubtitle": "Describe tus síntomas y te conectaremos con el especialista adecuado",
     "describeSymptoms": "Describe Tus Síntomas",
-    "placeholder": "Cuéntanos qué estás experimentando...",
+    "beDetailed": "Sé lo más detallado posible",
+    "placeholder": "Ejemplo: He tenido dolor de cabeza persistente durante 3 días, con sensibilidad a la luz...",
     "recording": "Grabando... Habla claramente",
     "quickAdd": "Agregar Síntomas Rápidos",
     "age": "Edad",
@@ -86,21 +94,42 @@
     "male": "Masculino",
     "female": "Femenino",
     "other": "Otro",
+    "yourProfile": "Tu Perfil",
+    "personalizeRec": "Ayúdanos a personalizar las recomendaciones",
     "medicalHistory": "Historial Médico y Medicamentos",
     "currentMedications": "Medicamentos Actuales",
     "addMedication": "Agregar medicamento...",
-    "clickBodyParts": "Haz Clic en las Partes del Cuerpo Afectadas",
+    "bodyMap": "Mapa Corporal",
+    "clickAffectedAreas": "Haz clic en las áreas afectadas",
+    "clickBodyParts": "Haz Clic en las Partes Afectadas",
     "view2D": "Vista 2D",
     "view3D": "Vista 3D",
+    "loading3D": "Cargando modelo 3D...",
     "selectedAreas": "Áreas seleccionadas:",
     "selectedSymptomType": "Tipo de síntoma seleccionado:",
-    "analyzeButton": "Analizar Síntomas",
+    "selectedSymptoms": "Síntomas seleccionados:",
+    "analyzeButton": "Encontrar Mi Especialista",
     "analyzingButton": "Analizando...",
+    "progressSymptoms": "Síntomas",
+    "progressBodyMap": "Mapa Corporal",
+    "progressProfile": "Perfil",
     "symptomTypes": {
       "pain": "Dolor",
       "swelling": "Hinchazón",
       "numbness": "Entumecimiento",
       "rash": "Erupción"
+    },
+    "categories": {
+      "General": "General",
+      "Head & Face": "Cabeza y Cara",
+      "Respiratory": "Respiratorio",
+      "Digestive": "Digestivo",
+      "Musculoskeletal": "Musculoesquelético",
+      "Skin": "Piel",
+      "Neurological": "Neurológico",
+      "Cardiovascular": "Cardiovascular",
+      "Mental Health": "Salud Mental",
+      "Other": "Otro"
     },
     "quickSymptoms": {
       "headache": "Dolor de Cabeza",
@@ -142,7 +171,7 @@
     "message": "Según tus síntomas, podrías estar experimentando una emergencia médica.",
     "detectedKeywords": "Palabras clave detectadas:",
     "call911": "Llamar al 911 Ahora",
-    "notEmergency": "Si esto no es una emergencia, puedes cerrar esto y continuar con tu análisis de síntomas."
+    "notEmergency": "Si esto no es una emergencia, puedes cerrar esto y continuar con tu análisis."
   },
   "results": {
     "title": "Tus Resultados de Análisis",
@@ -157,7 +186,7 @@
     "eligibility": "Elegibilidad",
     "visitWebsite": "Visitar Sitio Web",
     "firstMeasures": "Primeras Medidas",
-    "disclaimer": "Esta es una recomendación impulsada por IA y no debe reemplazar el consejo médico profesional. Por favor consulta con un proveedor de atención médica para diagnóstico y tratamiento.",
+    "disclaimer": "Esta es una recomendación de IA y no debe reemplazar el consejo médico profesional.",
     "newAnalysis": "Iniciar Nuevo Análisis",
     "findDoctors": "Buscar Médicos",
     "downloadReport": "Descargar Informe",
@@ -171,12 +200,16 @@
   "doctors": {
     "title": "Buscar Especialistas",
     "subtitle": "Explora nuestra red de profesionales de salud verificados",
-    "searchPlaceholder": "Buscar médicos o especialidades...",
+    "heroTitle": "Encuentra Tu Médico",
+    "heroSubtitle": "Explora nuestra red de profesionales — reserva al instante o inicia una videollamada.",
+    "heroBadge": "Especialistas Emparejados por IA Cerca de Ti",
+    "searchPlaceholder": "Buscar por nombre, especialidad o condición...",
     "allSpecialties": "Todas las Especialidades",
     "showing": "Mostrando",
     "specialists": "especialistas",
+    "specialistsWithin": "especialistas dentro de",
     "in": "en",
-    "sortBy": "Ordenar por:",
+    "sortBy": "Ordenar:",
     "rating": "Calificación",
     "distance": "Distancia",
     "reviews": "Reseñas",
@@ -188,7 +221,31 @@
     "languages": "Idiomas:",
     "videoCall": "Videollamada Disponible",
     "bookAppointment": "Reservar Cita",
-    "viewProfile": "Ver Perfil"
+    "viewProfile": "Ver Perfil",
+    "yourLocation": "Tu Ubicación",
+    "locationAccess": "Acceso a ubicación...",
+    "detect": "Detectar",
+    "update": "Actualizar",
+    "manual": "Manual",
+    "searchCity": "Buscar ciudad o lugar...",
+    "radius": "Radio:",
+    "list": "Lista",
+    "split": "Dividido",
+    "map": "Mapa",
+    "freeTreatment": "Tratamiento Gratuito",
+    "allSchemes": "Todos los Esquemas",
+    "centralSchemes": "Esquemas Centrales",
+    "stateSchemes": "Esquemas Estatales",
+    "all": "Todos",
+    "central": "Central",
+    "noSpecialistsFound": "No se encontraron especialistas",
+    "noSpecialistsHint": "Intenta aumentar el radio o cambiar los filtros",
+    "clearAllFilters": "Limpiar todos los filtros",
+    "noSchemeDoctors": "No se encontraron médicos del esquema",
+    "noSchemeDoctorsHint": "Intenta aumentar el radio o cambiar la especialidad",
+    "loadingScheme": "Cargando médicos del esquema gubernamental...",
+    "availableNow": "Disponible Ahora",
+    "specialties": "Especialidades"
   },
   "dashboard": {
     "title": "Panel de Salud",
@@ -216,6 +273,27 @@
       "report": "Informe",
       "symptom": "Síntoma"
     }
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "signup": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "fullName": "Nombre completo",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "noAccount": "¿No tienes cuenta?",
+    "hasAccount": "¿Ya tienes cuenta?"
+  },
+  "booking": {
+    "title": "Reservar Cita",
+    "selectDate": "Seleccionar Fecha",
+    "selectTime": "Seleccionar Horario",
+    "consultationType": "Tipo de Consulta",
+    "reason": "Razón de la Visita",
+    "confirm": "Confirmar Reserva",
+    "inPerson": "Presencial",
+    "videoCall": "Videollamada",
+    "success": "¡Cita reservada exitosamente!"
   },
   "errors": {
     "generic": "Algo salió mal. Por favor intenta de nuevo.",
