@@ -2,6 +2,7 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { CalendarIcon, Check, Video, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createBookingNotification } from "@/services/notificationService";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -70,6 +71,13 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
     } else {
       setBookingRef(ref);
       setConfirmed(true);
+      await createBookingNotification({
+        doctorName: doctor.name,
+        date: format(date, "PPP"),
+        timeSlot,
+        bookingRef: ref,
+        consultationType,
+      });
     }
   };
 

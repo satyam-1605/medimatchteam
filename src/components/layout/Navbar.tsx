@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
 import LanguageSelector from "@/components/ui/LanguageSelector";
+import NotificationBell from "@/components/ui/NotificationBell";
 import type { Session } from "@supabase/supabase-js";
 
 const Navbar = () => {
@@ -79,6 +80,7 @@ const Navbar = () => {
             <LanguageSelector variant="compact" />
             {session ? (
               <>
+                <NotificationBell />
                 <Link to="/my-bookings">
                   <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <CalendarCheck className="w-4 h-4" />

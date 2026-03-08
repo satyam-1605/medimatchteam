@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Calendar, Clock, XCircle, CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { createCancellationNotification } from "@/services/notificationService";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import GlowButton from "@/components/ui/GlowButton";
@@ -57,15 +58,21 @@ const MyBookings = () => {
     }
   };
 
-  const cancelAppointment = async (id: string) => {
+  const cancelAppointment = async (appt: Appointment) => {
     const { error } = await supabase
       .from("appointments")
       .update({ status: "cancelled" })
-      .eq("id", id);
+      .eq("id", appt.id);
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Appointment cancelled" });
+      await createCancellationNotification({
+        doctorName: appt.doctor_name,
+        date: appt.appointment_date,
+        timeSlot: appt.time_slot,
+        bookingRef: appt.booking_ref,
+      });
       fetchAppointments();
     }
   };
@@ -136,7 +143,7 @@ const MyBookings = () => {
                       </span>
                       {appt.status === "confirmed" && (
                         <button
-                          onClick={() => cancelAppointment(appt.id)}
+                          onClick={() => cancelAppointment(appt)}
                           className="text-xs text-destructive hover:underline"
                         >
                           Cancel
