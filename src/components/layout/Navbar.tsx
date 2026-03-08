@@ -113,9 +113,9 @@ const Navbar = () => {
             <div className="pt-4 flex flex-col gap-3">
               <LanguageSelector variant="dropdown" />
               {session ? (
-                <button onClick={() => { handleLogout(); setIsOpen(false); }} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
-                  <LogOut className="w-4 h-4" /> {t("common.logout")}
-                </button>
+                <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+                  <UserCircle className="w-4 h-4" /> Profile
+                </Link>
               ) : (
                 <Link to="/auth" onClick={() => setIsOpen(false)}>
                   <GlowButton size="sm" className="w-full">
