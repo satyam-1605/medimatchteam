@@ -145,6 +145,8 @@ const DoctorDirectory = () => {
   const pillsRef = useRef<HTMLDivElement>(null);
   const [bookingDoctor, setBookingDoctor] = useState<any>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const DOCTORS_PER_PAGE = 9;
 
   const handleBookClick = async (doctor: any) => {
     const { data: { session } } = await supabase.auth.getSession();
