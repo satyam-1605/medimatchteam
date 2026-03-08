@@ -332,6 +332,14 @@ const DoctorDirectory = () => {
 
   const activeCount = showSchemeOnly ? filteredSchemeDoctors.length : sortedDoctors.length;
 
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, selectedSpecialty, sortBy, maxDistance, showSchemeOnly, selectedSchemeFilter, schemeCategory]);
+
+  // Pagination helpers
+  const totalPages = Math.ceil((showSchemeOnly ? filteredSchemeDoctors.length : sortedDoctors.length) / DOCTORS_PER_PAGE);
+  const paginatedDoctors = sortedDoctors.slice((currentPage - 1) * DOCTORS_PER_PAGE, currentPage * DOCTORS_PER_PAGE);
+  const paginatedSchemeDoctors = filteredSchemeDoctors.slice((currentPage - 1) * DOCTORS_PER_PAGE, currentPage * DOCTORS_PER_PAGE);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
