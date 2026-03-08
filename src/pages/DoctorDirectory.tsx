@@ -139,6 +139,8 @@ const DoctorDirectory = () => {
   const [sortBy, setSortBy] = useState("rating");
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
   const [showSchemeOnly, setShowSchemeOnly] = useState(false);
+  const [selectedSchemeFilter, setSelectedSchemeFilter] = useState<string>("all");
+  const [availableSchemes, setAvailableSchemes] = useState<{ short_name: string; name: string }[]>([]);
   const [schemeDoctors, setSchemeDoctors] = useState<SchemeDoctor[]>([]);
   const [schemeDoctorsLoading, setSchemeDoctorsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -213,6 +215,15 @@ const DoctorDirectory = () => {
   useEffect(() => {
     const fetchSchemeDoctors = async () => {
       setSchemeDoctorsLoading(true);
+
+      // Fetch all schemes for the filter dropdown
+      const { data: schemesData } = await supabase
+        .from("government_schemes_db")
+        .select("short_name, name")
+        .order("is_national", { ascending: false })
+        .order("state");
+      if (schemesData) setAvailableSchemes(schemesData);
+
       const { data, error } = await supabase
         .from("scheme_doctors")
         .select(`
@@ -220,7 +231,7 @@ const DoctorDirectory = () => {
           hospital:hospitals!inner(id, name, address, city, state, latitude, longitude, phone),
           hospitals!inner(
             hospital_schemes(
-              scheme:government_schemes_db(short_name, name, coverage)
+              scheme:government_schemes_db(short_name, name, coverage, description, eligibility, official_url)
             )
           )
         `);
@@ -334,7 +345,10 @@ const DoctorDirectory = () => {
         selectedSpecialty === "All Specialties" ||
         d.specialization === selectedSpecialty;
       const matchesDistance = d.distance === undefined || d.distance <= maxDistance;
-      return matchesSearch && matchesSpecialty && matchesDistance;
+      const matchesScheme =
+        selectedSchemeFilter === "all" ||
+        d.schemes.some((s) => s.short_name === selectedSchemeFilter);
+      return matchesSearch && matchesSpecialty && matchesDistance && matchesScheme;
     })
     .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
 
@@ -588,6 +602,20 @@ const DoctorDirectory = () => {
                 <Shield className="w-3.5 h-3.5" />
                 Free Treatment
               </button>
+              {showSchemeOnly && availableSchemes.length > 0 && (
+                <select
+                  value={selectedSchemeFilter}
+                  onChange={(e) => setSelectedSchemeFilter(e.target.value)}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium border border-border bg-card text-foreground focus:outline-none focus:border-emerald-500 transition-all"
+                >
+                  <option value="all">All Schemes</option>
+                  {availableSchemes.map((s) => (
+                    <option key={s.short_name} value={s.short_name}>
+                      {s.short_name} — {s.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             {!showSchemeOnly && (
               <div className="flex items-center gap-1.5">
