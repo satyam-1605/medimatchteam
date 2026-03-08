@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import {
@@ -13,6 +14,13 @@ import {
   Download,
   Bell,
   Settings,
+  Lock,
+  Stethoscope,
+  MapPin,
+  Shield,
+  LogIn,
+  UserPlus,
+  Loader2,
 } from "lucide-react";
 import {
   LineChart,
@@ -31,6 +39,8 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const healthData = [
   { date: "Jan", value: 72, bp: 120 },
@@ -86,9 +96,130 @@ const healthTimeline = [
   },
 ];
 
+/* ───────── Unauthenticated Prompt ───────── */
+const LoginPrompt = () => {
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const features = [
+    { icon: Activity, label: "Symptom analysis history", color: "text-primary", bg: "bg-primary/10" },
+    { icon: Calendar, label: "Upcoming appointments", color: "text-success", bg: "bg-success/10" },
+    { icon: Stethoscope, label: "Doctor recommendations", color: "text-accent-foreground", bg: "bg-accent/10" },
+    { icon: Shield, label: "Government scheme eligibility", color: "text-warning", bg: "bg-warning/10" },
+    { icon: TrendingUp, label: "Health activity timeline", color: "text-primary", bg: "bg-primary/10" },
+    { icon: MapPin, label: "Nearby recommended doctors", color: "text-success", bg: "bg-success/10" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <ParticleBackground />
+
+      <main className="pt-24 pb-12 px-4 relative z-10">
+        <div className="container mx-auto max-w-2xl">
+          <motion.div
+            className="text-center mb-10"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <motion.div
+              className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-6"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2, type: "spring" }}
+            >
+              <Lock className="w-10 h-10 text-primary" />
+            </motion.div>
+
+            <h1 className="text-3xl md:text-4xl font-display font-bold mb-3">
+              <span className="headline-gradient">{t('dashboard.title')}</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-md mx-auto">
+              Please log in to access your personalized health dashboard.
+            </p>
+          </motion.div>
+
+          {/* Feature list */}
+          <motion.div
+            className="rounded-2xl bg-card border border-border p-6 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <h3 className="text-sm font-medium text-muted-foreground mb-4 uppercase tracking-wider">
+              What you'll get access to
+            </h3>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {features.map((feat, i) => (
+                <motion.div
+                  key={feat.label}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/30"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.25 + i * 0.06 }}
+                >
+                  <div className={`w-10 h-10 rounded-lg ${feat.bg} flex items-center justify-center flex-shrink-0`}>
+                    <feat.icon className={`w-5 h-5 ${feat.color}`} />
+                  </div>
+                  <span className="text-sm text-foreground font-medium">{feat.label}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <motion.button
+              onClick={() => navigate("/auth")}
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:bg-primary/90 transition-all"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <LogIn className="w-5 h-5" />
+              Sign In
+            </motion.button>
+            <motion.button
+              onClick={() => navigate("/auth")}
+              className="flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-card border border-border text-foreground font-semibold text-base hover:border-primary/50 transition-all"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <UserPlus className="w-5 h-5 text-primary" />
+              Create Account
+            </motion.button>
+          </motion.div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+/* ───────── Main Dashboard (authenticated) ───────── */
 const Dashboard = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const symptomCategories = [
     { name: t('dashboard.categories.neurological'), value: 35, color: "hsl(180, 100%, 50%)" },
@@ -132,6 +263,26 @@ const Dashboard = () => {
     },
   ];
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <ParticleBackground />
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated → show login prompt
+  if (!user) {
+    return <LoginPrompt />;
+  }
+
+  const displayName = user.user_metadata?.full_name || user.email?.split("@")[0] || "User";
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -147,7 +298,7 @@ const Dashboard = () => {
           >
             <div>
               <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">
-                <span className="headline-gradient">{t('dashboard.title')}</span>
+                <span className="headline-gradient">Welcome back, {displayName}</span>
               </h1>
               <p className="text-muted-foreground">
                 {t('dashboard.subtitle')}
@@ -161,6 +312,51 @@ const Dashboard = () => {
                 <Settings className="w-5 h-5 text-muted-foreground" />
               </button>
             </div>
+          </motion.div>
+
+          {/* Quick Actions Bar */}
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <motion.button
+              onClick={() => navigate("/symptoms")}
+              className="flex items-center gap-3 p-4 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Activity className="w-6 h-6 text-primary" />
+              <div className="text-left">
+                <p className="font-semibold text-foreground text-sm">Check Symptoms</p>
+                <p className="text-xs text-muted-foreground">AI-powered analysis</p>
+              </div>
+            </motion.button>
+            <motion.button
+              onClick={() => navigate("/doctors")}
+              className="flex items-center gap-3 p-4 rounded-xl bg-success/10 border border-success/20 hover:bg-success/20 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <MapPin className="w-6 h-6 text-success" />
+              <div className="text-left">
+                <p className="font-semibold text-foreground text-sm">Find Doctors</p>
+                <p className="text-xs text-muted-foreground">Nearby specialists</p>
+              </div>
+            </motion.button>
+            <motion.button
+              onClick={() => navigate("/my-bookings")}
+              className="flex items-center gap-3 p-4 rounded-xl bg-warning/10 border border-warning/20 hover:bg-warning/20 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Calendar className="w-6 h-6 text-warning" />
+              <div className="text-left">
+                <p className="font-semibold text-foreground text-sm">My Bookings</p>
+                <p className="text-xs text-muted-foreground">View appointments</p>
+              </div>
+            </motion.button>
           </motion.div>
 
           {/* Stats Grid */}
@@ -415,7 +611,10 @@ const Dashboard = () => {
                   {t('dashboard.quickActions')}
                 </h4>
                 <div className="space-y-2">
-                  <button className="w-full flex items-center justify-between p-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                  <button
+                    onClick={() => navigate("/symptoms")}
+                    className="w-full flex items-center justify-between p-3 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                  >
                     <div className="flex items-center gap-2">
                       <Plus className="w-4 h-4" />
                       <span className="text-sm font-medium">{t('dashboard.newAnalysis')}</span>
