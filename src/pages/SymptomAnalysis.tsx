@@ -78,6 +78,7 @@ const SymptomAnalysis = () => {
   const [showMedicalHistory, setShowMedicalHistory] = useState(false);
   const [medications, setMedications] = useState<string[]>([]);
   const [newMedication, setNewMedication] = useState("");
+  const [uploadedReports, setUploadedReports] = useState<UploadedReport[]>([]);
   const [showEmergency, setShowEmergency] = useState(false);
   const [emergencySymptoms, setEmergencySymptoms] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
