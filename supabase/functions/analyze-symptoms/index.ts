@@ -34,8 +34,18 @@ interface AnalysisResponse {
   genderSpecificConsiderations: string;
 }
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  hi: 'Hindi (हिन्दी)',
+  es: 'Spanish (Español)',
+  bn: 'Bengali (বাংলা)',
+  ta: 'Tamil (தமிழ்)',
+  te: 'Telugu (తెలుగు)',
+  mr: 'Marathi (मराठी)',
+  kn: 'Kannada (ಕನ್ನಡ)',
+  pa: 'Punjabi (ਪੰਜਾਬੀ)',
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -56,16 +66,11 @@ serve(async (req) => {
 
     const { symptoms, quickSymptoms, bodyParts, age, gender, medications, language } = requestData;
 
-    // Build comprehensive prompt with language instruction
-    const langInstruction = language && language !== 'en' 
-      ? `\n\nIMPORTANT: You MUST write ALL text values (reasoning, conditions, nextSteps, considerations) in ${language === 'hi' ? 'Hindi (हिन्दी)' : language === 'es' ? 'Spanish (Español)' : language}. Keep JSON keys in English but all string values must be in the specified language.`
-      : '';
-    const systemPrompt = buildSystemPrompt() + langInstruction;
+    const systemPrompt = buildSystemPrompt(language);
     const userPrompt = buildUserPrompt(symptoms, quickSymptoms, bodyParts, age, gender, medications);
 
     console.log('Sending request to Lovable AI Gateway...');
     
-    // Call Lovable AI Gateway (OpenAI-compatible API)
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -78,7 +83,7 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
         ],
-        temperature: 0.3,
+        temperature: 0.2,
         max_tokens: 2048,
       }),
     });
@@ -110,7 +115,6 @@ serve(async (req) => {
     const data = await response.json();
     console.log('Lovable AI Gateway response received');
 
-    // Extract text content from OpenAI-compatible response
     const textContent = data.choices?.[0]?.message?.content;
     
     if (!textContent) {
@@ -121,13 +125,15 @@ serve(async (req) => {
       );
     }
 
-    // Parse the JSON from AI's response
     const analysisResult = parseAIResponse(textContent, age, gender);
     
-    console.log('Analysis complete:', JSON.stringify(analysisResult, null, 2));
+    // Sanitize all string fields to remove markdown artifacts
+    const sanitized = sanitizeAnalysisResponse(analysisResult);
+    
+    console.log('Analysis complete');
 
     return new Response(
-      JSON.stringify(analysisResult),
+      JSON.stringify(sanitized),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -141,41 +147,94 @@ serve(async (req) => {
   }
 });
 
-function buildSystemPrompt(): string {
-  return `You are a medical triage AI assistant. Analyze patient symptoms and provide specialist recommendations. Be thorough but remember this is for triage purposes only - always recommend professional medical consultation.
+/**
+ * Remove markdown artifacts, asterisks, and other formatting noise from text.
+ */
+function cleanText(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')  // **bold**, *italic*, ***both***
+    .replace(/#{1,6}\s*/g, '')                   // # headers
+    .replace(/`{1,3}[^`]*`{1,3}/g, (m) => m.replace(/`/g, ''))  // inline code
+    .replace(/^\s*[-*+]\s+/gm, '')               // bullet points
+    .replace(/^\s*\d+\.\s+/gm, '')               // numbered lists
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')     // [links](url)
+    .replace(/[_~]{1,2}([^_~]+)[_~]{1,2}/g, '$1') // __underline__, ~~strike~~
+    .replace(/\(\*\)/g, '')                       // (*) artifacts
+    .replace(/\s{2,}/g, ' ')                      // collapse extra spaces
+    .trim();
+}
 
-IMPORTANT AGE-BASED VARIATIONS:
-- For children (0-12): Consider pediatric conditions, growth-related issues, infectious diseases
-- For teenagers (13-19): Consider hormonal changes, sports injuries, mental health
-- For adults (20-44): Consider lifestyle factors, occupational hazards
-- For middle-aged (45-64): Consider cardiovascular risk, cancer screening, metabolic conditions
-- For elderly (65+): Consider geriatric syndromes, polypharmacy, fall risk, stroke/heart attack risk
+function sanitizeAnalysisResponse(response: AnalysisResponse): AnalysisResponse {
+  const cleanRec = (rec: SpecialistRecommendation): SpecialistRecommendation => ({
+    ...rec,
+    specialty: cleanText(rec.specialty),
+    reasoning: cleanText(rec.reasoning),
+    conditions: rec.conditions.map(cleanText),
+  });
 
-You must return ONLY a valid JSON object with this exact structure (no markdown, no additional text):
+  return {
+    ...response,
+    primaryRecommendation: cleanRec(response.primaryRecommendation),
+    alternatives: response.alternatives.map(cleanRec),
+    emergencyFlags: response.emergencyFlags.map(cleanText),
+    differentialDiagnosis: response.differentialDiagnosis.map(cleanText),
+    nextSteps: response.nextSteps.map(cleanText),
+    ageSpecificConsiderations: cleanText(response.ageSpecificConsiderations),
+    genderSpecificConsiderations: cleanText(response.genderSpecificConsiderations),
+  };
+}
+
+function buildSystemPrompt(language?: string): string {
+  const langName = language && language !== 'en' ? LANGUAGE_NAMES[language] || language : null;
+  
+  const langInstruction = langName
+    ? `\n\nCRITICAL LANGUAGE RULE: You MUST write ALL text values (reasoning, conditions, nextSteps, considerations, emergencyFlags, differentialDiagnosis) in ${langName}. Only JSON keys stay in English. Every human-readable string must be in ${langName}.`
+    : '';
+
+  return `You are a medical triage assistant. Your job is to analyze patient symptoms and recommend the right medical specialist.
+
+RULES:
+- Focus only on symptom interpretation and specialist recommendation.
+- Do NOT include any markdown formatting: no asterisks, no bold, no italic, no bullet points, no headers, no links.
+- Write plain, clean sentences only.
+- Do NOT add disclaimers or lengthy explanations. Be concise and direct.
+- Always recommend professional medical consultation as a next step.
+
+AGE GUIDELINES:
+- Children (0-12): Pediatric conditions, growth issues, infectious diseases
+- Teenagers (13-19): Hormonal changes, sports injuries, mental health
+- Adults (20-44): Lifestyle factors, occupational hazards
+- Middle-aged (45-64): Cardiovascular risk, cancer screening, metabolic conditions
+- Elderly (65+): Geriatric syndromes, fall risk, polypharmacy, stroke/heart attack risk
+
+OUTPUT FORMAT:
+Return ONLY a valid JSON object. No text before or after the JSON. No markdown code fences. The exact structure:
+
 {
   "primaryRecommendation": {
-    "specialty": "Specialist type (e.g., Cardiologist, Neurologist)",
+    "specialty": "Specialist type name",
     "matchPercentage": 85,
-    "reasoning": "Detailed explanation of why this specialist is recommended",
-    "urgencyLevel": "low|moderate|high|emergency",
+    "reasoning": "One to two plain sentences explaining why this specialist fits best.",
+    "urgencyLevel": "low or moderate or high or emergency",
     "conditions": ["Possible condition 1", "Possible condition 2"]
   },
   "alternatives": [
     {
-      "specialty": "Alternative specialist",
+      "specialty": "Alternative specialist name",
       "matchPercentage": 70,
-      "reasoning": "Why this might also be appropriate",
-      "urgencyLevel": "low|moderate|high",
+      "reasoning": "One plain sentence explaining why this is an alternative.",
+      "urgencyLevel": "low or moderate or high",
       "conditions": ["Alternative condition"]
     }
   ],
   "urgencyPercentage": 65,
-  "emergencyFlags": ["Any emergency symptoms detected"],
+  "emergencyFlags": ["Plain text emergency warning if any, otherwise empty array"],
   "differentialDiagnosis": ["Condition 1", "Condition 2", "Condition 3"],
-  "nextSteps": ["Step 1", "Step 2", "Step 3"],
-  "ageSpecificConsiderations": "Specific considerations based on patient age",
-  "genderSpecificConsiderations": "Specific considerations based on patient gender if applicable"
-}`;
+  "nextSteps": ["Plain action step 1", "Plain action step 2", "Plain action step 3"],
+  "ageSpecificConsiderations": "One plain sentence about age-related factors.",
+  "genderSpecificConsiderations": "One plain sentence about gender-related factors if relevant, or empty string."
+}${langInstruction}`;
 }
 
 function buildUserPrompt(
@@ -193,25 +252,12 @@ function buildUserPrompt(
   const medicationsText = medications.length > 0 ? medications.join(', ') : 'None reported';
   const quickSymptomsText = quickSymptoms.length > 0 ? quickSymptoms.join(', ') : 'None selected';
 
-  return `Analyze the following patient information and provide specialist recommendations:
+  return `Patient age: ${age}, gender: ${gender || 'Not specified'}, medications: ${medicationsText}.
+Symptoms described: "${symptoms || 'None provided'}".
+Quick-selected symptoms: ${quickSymptomsText}.
+Affected body areas: ${bodyPartsDescription}.
 
-PATIENT INFORMATION:
-- Age: ${age} years old
-- Gender: ${gender || 'Not specified'}
-- Current Medications: ${medicationsText}
-
-REPORTED SYMPTOMS:
-- Free-text description: "${symptoms || 'None provided'}"
-- Quick-selected symptoms: ${quickSymptomsText}
-- Affected body parts with symptom types: ${bodyPartsDescription}
-
-ANALYSIS REQUIREMENTS:
-1. Consider age-specific factors (pediatric, adult, geriatric considerations)
-2. Consider gender-specific conditions if applicable
-3. Account for medication interactions or side effects
-4. Identify any emergency red flags
-5. Provide differential diagnoses
-6. Recommend appropriate medical specialists`;
+Analyze these symptoms and return the JSON response.`;
 }
 
 function parseAIResponse(
@@ -220,7 +266,6 @@ function parseAIResponse(
   gender: string
 ): AnalysisResponse {
   try {
-    // Try to extract JSON from the response
     let jsonStr = textContent.trim();
     
     // Remove markdown code blocks if present
@@ -229,10 +274,15 @@ function parseAIResponse(
     } else if (jsonStr.startsWith('```')) {
       jsonStr = jsonStr.replace(/^```\n?/, '').replace(/\n?```$/, '');
     }
+    
+    // Try to extract JSON if there's text around it
+    const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      jsonStr = jsonMatch[0];
+    }
 
     const parsed = JSON.parse(jsonStr);
     
-    // Validate and provide defaults for missing fields
     return {
       primaryRecommendation: parsed.primaryRecommendation || {
         specialty: "General Physician",
@@ -251,14 +301,13 @@ function parseAIResponse(
         "Avoid self-medication",
       ],
       ageSpecificConsiderations: parsed.ageSpecificConsiderations || 
-        `For a ${age}-year-old patient, standard age-appropriate evaluation protocols apply.`,
+        `For a ${age}-year-old patient, standard age-appropriate evaluation applies.`,
       genderSpecificConsiderations: parsed.genderSpecificConsiderations || 
-        (gender ? `Gender-specific factors for ${gender} patients are considered.` : ""),
+        (gender ? `Standard considerations for ${gender} patients apply.` : ""),
     };
   } catch (parseError) {
     console.error('Error parsing AI response:', parseError, 'Raw text:', textContent);
     
-    // Return a fallback response
     return {
       primaryRecommendation: {
         specialty: "General Physician",

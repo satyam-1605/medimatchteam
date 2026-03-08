@@ -2,8 +2,35 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  hi: 'Hindi (हिन्दी)',
+  es: 'Spanish (Español)',
+  bn: 'Bengali (বাংলা)',
+  ta: 'Tamil (தமிழ்)',
+  te: 'Telugu (తెలుగు)',
+  mr: 'Marathi (मराठी)',
+  kn: 'Kannada (ಕನ್ನಡ)',
+  pa: 'Punjabi (ਪੰਜਾਬੀ)',
+};
+
+/**
+ * Remove markdown artifacts from AI text output.
+ */
+function cleanText(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/`{1,3}[^`]*`{1,3}/g, (m) => m.replace(/`/g, ''))
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[_~]{1,2}([^_~]+)[_~]{1,2}/g, '$1')
+    .replace(/\(\*\)/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,8 +39,10 @@ serve(async (req) => {
 
   try {
     const { symptomsText, quickSymptoms, language } = await req.json();
-    const langInstruction = language && language !== 'en' 
-      ? ` Respond entirely in ${language === 'hi' ? 'Hindi (हिन्दी)' : language === 'es' ? 'Spanish (Español)' : language}.`
+
+    const langName = language && language !== 'en' ? LANGUAGE_NAMES[language] || language : null;
+    const langInstruction = langName
+      ? ` You MUST respond entirely in ${langName}. Do not use English.`
       : '';
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -25,15 +54,24 @@ serve(async (req) => {
       );
     }
 
-    // Build symptom summary
     const parts: string[] = [];
     if (symptomsText?.trim()) parts.push(symptomsText.trim());
     if (quickSymptoms?.length) parts.push(quickSymptoms.join(", "));
-    const symptomSummary = parts.length ? parts.join(". Selected symptoms: ") : "General wellness check.";
+    const symptomSummary = parts.length ? parts.join(". Also: ") : "General wellness check.";
 
-    const prompt = `You are a helpful health assistant. The user has reported these symptoms: "${symptomSummary}"
+    const systemPrompt = `You are a health assistant that gives brief, safety-first at-home measures before a doctor visit.
 
-Give 4 to 5 brief, safety-first measures the person should take at home before seeing a doctor. Use simple language. If any symptom suggests an emergency (e.g. chest pain, severe shortness of breath), say so clearly first. Format as a short numbered list. Do not diagnose. Keep total response under 200 words.${langInstruction}`;
+RULES:
+- Do NOT use any markdown formatting: no asterisks, no bold, no italic, no headers, no links.
+- Write plain numbered steps only (e.g. "1. Rest and stay hydrated.").
+- Do NOT diagnose. Only suggest safe home measures.
+- If symptoms suggest an emergency (chest pain, severe breathing difficulty, stroke signs), state that clearly as step 1.
+- Keep total response under 150 words.
+- Use simple, easy-to-understand language.${langInstruction}`;
+
+    const userPrompt = `The patient reports these symptoms: "${symptomSummary}"
+
+Give 4 to 5 brief safety-first measures they should take at home before seeing a doctor.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -44,11 +82,11 @@ Give 4 to 5 brief, safety-first measures the person should take at home before s
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: "You give brief, safety-first at-home first measures. No diagnosis. Short numbered lists." },
-          { role: "user", content: prompt },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
         ],
         max_tokens: 400,
-        temperature: 0.3,
+        temperature: 0.2,
       }),
     });
 
@@ -85,8 +123,11 @@ Give 4 to 5 brief, safety-first measures the person should take at home before s
       );
     }
 
+    // Sanitize the output to remove any markdown artifacts
+    const cleaned = cleanText(content);
+
     return new Response(
-      JSON.stringify({ text: content }),
+      JSON.stringify({ text: cleaned }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
