@@ -317,6 +317,16 @@ const SymptomAnalysis = () => {
                   )}
                 </div>
 
+                {/* Medical Report Upload */}
+                <div className="px-6 pb-2 pt-4 border-t border-border/30">
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-medium text-foreground">Attach Medical Reports</h3>
+                    <span className="text-xs text-muted-foreground">(optional)</span>
+                  </div>
+                  <MedicalReportUpload reports={uploadedReports} onReportsChange={setUploadedReports} />
+                </div>
+
                 {/* Quick Symptoms by Category */}
                 <div className="p-6">
                   <h3 className="text-sm font-medium text-muted-foreground mb-4">{t("symptoms.quickAdd")}</h3>
