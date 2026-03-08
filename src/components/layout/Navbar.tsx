@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Activity, Menu, X, LogIn, LogOut, CalendarCheck, UserCircle } from "lucide-react";
+import { Activity, Menu, X, LogIn, CalendarCheck, UserCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
