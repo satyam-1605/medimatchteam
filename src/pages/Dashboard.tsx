@@ -21,6 +21,8 @@ import {
   LogIn,
   UserPlus,
   Loader2,
+  CalendarCheck,
+  AlertCircle,
 } from "lucide-react";
 import {
   LineChart,
@@ -41,6 +43,7 @@ import ParticleBackground from "@/components/ui/ParticleBackground";
 import AnimatedCounter from "@/components/ui/AnimatedCounter";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import { format, isPast, isToday, parseISO } from "date-fns";
 
 const healthData = [
   { date: "Jan", value: 72, bp: 120 },
@@ -59,41 +62,6 @@ const weeklySymptoms = [
   { day: "Fri", count: 2 },
   { day: "Sat", count: 1 },
   { day: "Sun", count: 0 },
-];
-
-const healthTimeline = [
-  {
-    id: 1,
-    date: "Jan 15, 2024",
-    titleKey: "Annual Checkup",
-    type: "appointment",
-    description: "Routine health examination completed",
-    doctor: "Dr. Sarah Chen",
-  },
-  {
-    id: 2,
-    date: "Feb 3, 2024",
-    titleKey: "Blood Work Results",
-    type: "report",
-    description: "All markers within normal range",
-    doctor: "Lab Services",
-  },
-  {
-    id: 3,
-    date: "Mar 10, 2024",
-    titleKey: "Symptom Report",
-    type: "symptom",
-    description: "Headache and fatigue - referred to neurologist",
-    doctor: "AI Analysis",
-  },
-  {
-    id: 4,
-    date: "Mar 20, 2024",
-    titleKey: "Neurologist Consultation",
-    type: "appointment",
-    description: "MRI scheduled, medication prescribed",
-    doctor: "Dr. Emily Thompson",
-  },
 ];
 
 /* ───────── Unauthenticated Prompt ───────── */
@@ -139,7 +107,6 @@ const LoginPrompt = () => {
             </p>
           </motion.div>
 
-          {/* Feature list */}
           <motion.div
             className="rounded-2xl bg-card border border-border p-6 mb-8"
             initial={{ opacity: 0, y: 20 }}
@@ -167,7 +134,6 @@ const LoginPrompt = () => {
             </div>
           </motion.div>
 
-          {/* CTA Buttons */}
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center"
             initial={{ opacity: 0, y: 20 }}
@@ -199,6 +165,31 @@ const LoginPrompt = () => {
   );
 };
 
+/* ───────── Types ───────── */
+interface AppointmentRow {
+  id: string;
+  doctor_name: string;
+  appointment_date: string;
+  time_slot: string;
+  status: string | null;
+  reason: string | null;
+  consultation_type: string | null;
+  booking_ref: string;
+}
+
+function getStatusStyle(status: string | null) {
+  switch (status) {
+    case "confirmed":
+      return { bg: "bg-success/10", text: "text-success", label: "Confirmed" };
+    case "cancelled":
+      return { bg: "bg-destructive/10", text: "text-destructive", label: "Cancelled" };
+    case "completed":
+      return { bg: "bg-muted", text: "text-muted-foreground", label: "Completed" };
+    default:
+      return { bg: "bg-primary/10", text: "text-primary", label: status || "Pending" };
+  }
+}
+
 /* ───────── Main Dashboard (authenticated) ───────── */
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -206,6 +197,8 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState<AppointmentRow[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(true);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -220,6 +213,31 @@ const Dashboard = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Fetch real appointments
+  useEffect(() => {
+    if (!user) return;
+    setAppointmentsLoading(true);
+    supabase
+      .from("appointments")
+      .select("id, doctor_name, appointment_date, time_slot, status, reason, consultation_type, booking_ref")
+      .eq("user_id", user.id)
+      .order("appointment_date", { ascending: false })
+      .limit(50)
+      .then(({ data, error }) => {
+        if (error) console.error("Failed to fetch appointments:", error);
+        else setAppointments(data || []);
+        setAppointmentsLoading(false);
+      });
+  }, [user]);
+
+  const today = new Date(new Date().toDateString());
+  const upcomingAppointments = appointments.filter(
+    (a) => a.status !== "cancelled" && parseISO(a.appointment_date) >= today
+  );
+  const pastAppointments = appointments.filter(
+    (a) => parseISO(a.appointment_date) < today
+  );
 
   const symptomCategories = [
     { name: t('dashboard.categories.neurological'), value: 35, color: "hsl(180, 100%, 50%)" },
@@ -247,7 +265,7 @@ const Dashboard = () => {
     },
     {
       label: t('dashboard.appointments'),
-      value: 4,
+      value: upcomingAppointments.length,
       suffix: "",
       icon: Calendar,
       color: "text-accent",
@@ -255,7 +273,7 @@ const Dashboard = () => {
     },
     {
       label: t('dashboard.reports'),
-      value: 8,
+      value: pastAppointments.length,
       suffix: "",
       icon: FileText,
       color: "text-warning",
@@ -390,6 +408,113 @@ const Dashboard = () => {
                 </div>
               </motion.div>
             ))}
+          </motion.div>
+
+          {/* Upcoming Appointments Section */}
+          <motion.div
+            className="glass-panel p-6 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                <CalendarCheck className="w-5 h-5 text-primary" />
+                Upcoming Appointments
+              </h3>
+              <button
+                onClick={() => navigate("/my-bookings")}
+                className="text-sm text-primary hover:underline flex items-center gap-1"
+              >
+                View all <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {appointmentsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 animate-pulse">
+                    <div className="w-12 h-12 rounded-xl bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-muted rounded w-48" />
+                      <div className="h-3 bg-muted rounded w-32" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : upcomingAppointments.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground mb-1">No upcoming appointments</p>
+                <p className="text-sm text-muted-foreground/70 mb-4">Book a doctor to get started</p>
+                <motion.button
+                  onClick={() => navigate("/doctors")}
+                  className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-all"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  Find a Doctor
+                </motion.button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {upcomingAppointments.slice(0, 5).map((appt, index) => {
+                  const statusStyle = getStatusStyle(appt.status);
+                  const dateObj = parseISO(appt.appointment_date);
+                  const isAppToday = isToday(dateObj);
+
+                  return (
+                    <motion.div
+                      key={appt.id}
+                      className="flex items-center gap-4 p-4 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2 + index * 0.05 }}
+                    >
+                      <div className={`w-12 h-12 rounded-xl flex flex-col items-center justify-center flex-shrink-0 ${isAppToday ? "bg-primary/20 border border-primary/30" : "bg-muted/50"}`}>
+                        <span className={`text-xs font-medium ${isAppToday ? "text-primary" : "text-muted-foreground"}`}>
+                          {format(dateObj, "MMM")}
+                        </span>
+                        <span className={`text-lg font-bold leading-none ${isAppToday ? "text-primary" : "text-foreground"}`}>
+                          {format(dateObj, "dd")}
+                        </span>
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h4 className="font-medium text-foreground truncate">{appt.doctor_name}</h4>
+                          {isAppToday && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-primary/20 text-primary font-medium">
+                              Today
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {appt.time_slot}
+                          </span>
+                          {appt.consultation_type && (
+                            <span className="capitalize">{appt.consultation_type}</span>
+                          )}
+                          {appt.reason && (
+                            <span className="truncate max-w-[150px]">{appt.reason}</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                          {statusStyle.label}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
           </motion.div>
 
           <div className="grid lg:grid-cols-3 gap-8">
@@ -539,7 +664,7 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Timeline Column */}
+            {/* Timeline Column — Real Appointments */}
             <motion.div
               className="glass-panel p-6"
               initial={{ opacity: 0, x: 30 }}
@@ -550,60 +675,86 @@ const Dashboard = () => {
                 <h3 className="text-lg font-semibold text-foreground">
                   {t('dashboard.healthTimeline')}
                 </h3>
-                <button className="text-sm text-primary hover:underline">
+                <button
+                  onClick={() => navigate("/my-bookings")}
+                  className="text-sm text-primary hover:underline"
+                >
                   {t('common.viewAll')}
                 </button>
               </div>
 
-              <div className="relative">
-                <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-border" />
-
-                <div className="space-y-6">
-                  {healthTimeline.map((item, index) => (
-                    <motion.div
-                      key={item.id}
-                      className="relative pl-10"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + index * 0.1 }}
-                    >
-                      <div
-                        className={`absolute left-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                          item.type === "appointment"
-                            ? "bg-primary/20"
-                            : item.type === "report"
-                            ? "bg-success/20"
-                            : "bg-warning/20"
-                        }`}
-                      >
-                        {item.type === "appointment" ? (
-                          <Calendar className="w-3 h-3 text-primary" />
-                        ) : item.type === "report" ? (
-                          <FileText className="w-3 h-3 text-success" />
-                        ) : (
-                          <Activity className="w-3 h-3 text-warning" />
-                        )}
+              {appointmentsLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="pl-10 relative">
+                      <div className="absolute left-0 w-6 h-6 rounded-full bg-muted animate-pulse" />
+                      <div className="bg-muted/30 rounded-lg p-4 space-y-2 animate-pulse">
+                        <div className="h-3 bg-muted rounded w-20" />
+                        <div className="h-4 bg-muted rounded w-36" />
+                        <div className="h-3 bg-muted rounded w-28" />
                       </div>
-
-                      <div className="bg-muted/30 rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                          <Clock className="w-3 h-3" />
-                          {item.date}
-                        </div>
-                        <h4 className="font-medium text-foreground">
-                          {item.titleKey}
-                        </h4>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {item.description}
-                        </p>
-                        <p className="text-xs text-primary mt-2">
-                          {item.doctor}
-                        </p>
-                      </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
-              </div>
+              ) : appointments.length === 0 ? (
+                <div className="text-center py-10">
+                  <AlertCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">No appointment history yet</p>
+                </div>
+              ) : (
+                <div className="relative">
+                  <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-border" />
+
+                  <div className="space-y-6">
+                    {appointments.slice(0, 8).map((appt, index) => {
+                      const dateObj = parseISO(appt.appointment_date);
+                      const isUpcoming = dateObj >= today;
+                      const statusStyle = getStatusStyle(appt.status);
+
+                      return (
+                        <motion.div
+                          key={appt.id}
+                          className="relative pl-10"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 + index * 0.08 }}
+                        >
+                          <div
+                            className={`absolute left-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                              isUpcoming ? "bg-primary/20" : "bg-muted"
+                            }`}
+                          >
+                            <Calendar className={`w-3 h-3 ${isUpcoming ? "text-primary" : "text-muted-foreground"}`} />
+                          </div>
+
+                          <div className="bg-muted/30 rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center justify-between gap-2 mb-1">
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Clock className="w-3 h-3" />
+                                {format(dateObj, "MMM dd, yyyy")} · {appt.time_slot}
+                              </div>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusStyle.bg} ${statusStyle.text}`}>
+                                {statusStyle.label}
+                              </span>
+                            </div>
+                            <h4 className="font-medium text-foreground">
+                              {appt.doctor_name}
+                            </h4>
+                            {appt.reason && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                                {appt.reason}
+                              </p>
+                            )}
+                            <p className="text-xs text-primary mt-2">
+                              Ref: {appt.booking_ref}
+                            </p>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Quick Actions */}
               <div className="mt-8 pt-6 border-t border-border">
