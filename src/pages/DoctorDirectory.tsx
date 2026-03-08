@@ -236,7 +236,7 @@ const DoctorDirectory = () => {
           hospital:hospitals!inner(id, name, address, city, state, latitude, longitude, phone),
           hospitals!inner(
             hospital_schemes(
-              scheme:government_schemes_db(short_name, name, coverage, description, eligibility, official_url)
+              scheme:government_schemes_db(short_name, name, coverage, description, eligibility, official_url, is_national, state)
             )
           )
         `);
