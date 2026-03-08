@@ -4,7 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import hi from './locales/hi.json';
-import es from './locales/es.json';
+
 import bn from './locales/bn.json';
 import mr from './locales/mr.json';
 import pa from './locales/pa.json';
@@ -15,7 +15,7 @@ export const languages = [
   { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', dir: 'ltr' },
   { code: 'mr', name: 'Marathi', nativeName: 'मराठी', dir: 'ltr' },
   { code: 'pa', name: 'Punjabi', nativeName: 'ਪੰਜਾਬੀ', dir: 'ltr' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español', dir: 'ltr' },
+  
 ] as const;
 
 export type LanguageCode = typeof languages[number]['code'];
@@ -26,7 +26,7 @@ const resources = {
   bn: { translation: bn },
   mr: { translation: mr },
   pa: { translation: pa },
-  es: { translation: es },
+  
 };
 
 i18n
