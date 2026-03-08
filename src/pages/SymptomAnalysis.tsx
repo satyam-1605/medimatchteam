@@ -284,21 +284,28 @@ const SymptomAnalysis = () => {
                       className="w-full h-28 bg-muted/30 border border-border/50 rounded-2xl p-4 pr-14 text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all resize-none text-base"
                     />
                     <button
-                      onClick={() => setIsRecording(!isRecording)}
+                      onClick={toggleRecording}
+                      title={!speech.isSupported ? "Voice input not supported in this browser" : speech.isListening ? "Stop recording" : "Start voice input"}
+                      disabled={!speech.isSupported}
                       className={cn(
                         "absolute bottom-4 right-4 p-3 rounded-xl transition-all duration-300",
-                        isRecording
-                          ? "bg-destructive text-white shadow-lg shadow-destructive/30 animate-pulse"
-                          : "bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary"
+                        !speech.isSupported
+                          ? "bg-muted text-muted-foreground/40 cursor-not-allowed"
+                          : speech.isListening
+                            ? "bg-destructive text-white shadow-lg shadow-destructive/30 animate-pulse"
+                            : "bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary"
                       )}
                     >
-                      {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                      {speech.isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                     </button>
                   </div>
-                  {isRecording && (
+                  {speech.isListening && (
                     <motion.div className="mt-3 flex items-center gap-2 text-sm text-destructive" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                       <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
                       {t("symptoms.recording")}
+                      {speech.interimTranscript && (
+                        <span className="text-muted-foreground ml-2 italic truncate max-w-xs">"{speech.interimTranscript}"</span>
+                      )}
                     </motion.div>
                   )}
                 </div>
