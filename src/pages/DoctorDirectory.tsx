@@ -140,7 +140,9 @@ const DoctorDirectory = () => {
   const [viewMode, setViewMode] = useState<"list" | "map" | "split">("split");
   const [showSchemeOnly, setShowSchemeOnly] = useState(false);
   const [selectedSchemeFilter, setSelectedSchemeFilter] = useState<string>("all");
-  const [availableSchemes, setAvailableSchemes] = useState<{ short_name: string; name: string }[]>([]);
+  const [schemeCategory, setSchemeCategory] = useState<"all" | "central" | "state">("all");
+  const [availableSchemes, setAvailableSchemes] = useState<{ short_name: string; name: string; is_national: boolean; state: string }[]>([]);
+  const [userState, setUserState] = useState<string | null>(null);
   const [schemeDoctors, setSchemeDoctors] = useState<SchemeDoctor[]>([]);
   const [schemeDoctorsLoading, setSchemeDoctorsLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
