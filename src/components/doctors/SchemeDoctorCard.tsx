@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MapPin,
@@ -52,81 +53,85 @@ interface SchemeDoctorCardProps {
 }
 
 const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
+  const { t } = useTranslation();
   const [expandedScheme, setExpandedScheme] = useState<string | null>(null);
+
+  const hasCentral = doctor.schemes.some((s) => s.is_national);
+  const hasState = doctor.schemes.some((s) => !s.is_national);
 
   return (
     <motion.div
-      className="group glass-panel overflow-hidden transition-all duration-300 hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]"
-      initial={{ opacity: 0, y: 24 }}
+      className="group flex flex-col bg-card border border-border rounded-2xl overflow-hidden transition-all duration-300 hover:border-success/40 hover:shadow-[0_0_24px_hsl(var(--success)/0.12)]"
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.4 }}
+      transition={{ delay: index * 0.04, duration: 0.35 }}
     >
-      {/* Scheme banner */}
-      <div className="flex items-center gap-2 px-5 py-2.5 border-b border-border bg-emerald-500/10">
-        <Shield className="w-3.5 h-3.5 text-emerald-500" />
-        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-          Free / Subsidized Treatment
+      {/* Free treatment banner */}
+      <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-success/8">
+        <Shield className="w-3.5 h-3.5 text-success flex-shrink-0" />
+        <span className="text-xs font-semibold text-success">
+          {t("doctors.freeTreatment")}
         </span>
         <span className="ml-auto flex gap-1.5 flex-wrap justify-end">
-          {doctor.schemes.filter(s => s.is_national).length > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-blue-500/15 border border-blue-500/25 text-[10px] font-medium text-blue-600 dark:text-blue-400">
-              Central
+          {hasCentral && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20">
+              {t("doctors.central")}
             </span>
           )}
-          {doctor.schemes.filter(s => !s.is_national).length > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/25 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-              State
+          {hasState && (
+            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-warning/10 text-warning border border-warning/20">
+              {t("doctors.stateSchemes")}
             </span>
           )}
         </span>
       </div>
 
-      <div className="p-5">
+      <div className="flex flex-col flex-1 p-4 gap-3">
         {/* Doctor info */}
-        <div className="flex gap-4 mb-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500/30 to-emerald-400/20 flex items-center justify-center flex-shrink-0 ring-2 ring-emerald-500/20">
-            <span className="text-xl font-display font-bold text-emerald-500">
-              {doctor.name.charAt(0)}
-            </span>
+        <div className="flex gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-success/25 to-success/10 flex items-center justify-center flex-shrink-0 ring-1 ring-success/20">
+            <span className="text-lg font-bold text-success">{doctor.name.charAt(0)}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-base font-bold text-foreground truncate group-hover:text-emerald-500 transition-colors">
+            <h3 className="text-sm font-bold text-foreground truncate group-hover:text-success transition-colors leading-tight">
               {doctor.name}
             </h3>
-            <p className="text-sm text-emerald-500/80 font-medium">{doctor.specialization}</p>
-            <div className="flex items-center gap-3 mt-1">
-              {doctor.distance !== undefined && (
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3.5 h-3.5" />
-                  {doctor.distance.toFixed(1)} km
-                </span>
-              )}
-            </div>
+            <p className="text-xs text-success/80 font-medium mt-0.5">{doctor.specialization}</p>
+            {doctor.distance !== undefined && (
+              <span className="flex items-center gap-0.5 text-xs text-muted-foreground mt-1">
+                <MapPin className="w-3 h-3 flex-shrink-0" />
+                {doctor.distance.toFixed(1)} km
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Details */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-xs text-muted-foreground">
-            <Briefcase className="w-3 h-3" />
-            {doctor.experience}
-          </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-xs text-muted-foreground">
-            <Globe className="w-3 h-3" />
-            {doctor.languages}
-          </span>
+        {/* Detail tags */}
+        <div className="flex flex-wrap gap-1.5">
+          {doctor.experience && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-[11px] text-muted-foreground">
+              <Briefcase className="w-3 h-3 flex-shrink-0" />
+              {doctor.experience}
+            </span>
+          )}
+          {doctor.languages && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-muted text-[11px] text-muted-foreground">
+              <Globe className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate max-w-[120px]">{doctor.languages}</span>
+            </span>
+          )}
         </div>
 
-        {/* Hospital */}
-        <div className="p-3 rounded-xl bg-muted/50 border border-border/50 mb-4">
+        {/* Hospital info */}
+        <div className="p-2.5 rounded-xl bg-muted/40 border border-border/50">
           <div className="flex items-start gap-2">
-            <Building2 className="w-4 h-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground">{doctor.hospital.name}</p>
-              <p className="text-xs text-muted-foreground">{doctor.hospital.address}, {doctor.hospital.city}</p>
+            <Building2 className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-foreground truncate">{doctor.hospital.name}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{doctor.hospital.address}, {doctor.hospital.city}</p>
               {doctor.hospital.phone && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
+                <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                  <Phone className="w-3 h-3 flex-shrink-0" />
                   {doctor.hospital.phone}
                 </p>
               )}
@@ -134,97 +139,100 @@ const SchemeDoctorCard = ({ doctor, index = 0 }: SchemeDoctorCardProps) => {
           </div>
         </div>
 
-        {/* Dynamic scheme list with expandable details */}
-        <div className="space-y-2 mb-4">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Accepted Schemes ({doctor.schemes.length})
+        {/* Scheme list */}
+        <div className="space-y-1.5">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+            {t("doctors.allSchemes")} ({doctor.schemes.length})
           </p>
-          {/* Central schemes first, then state */}
-          {[...doctor.schemes].sort((a, b) => (b.is_national ? 1 : 0) - (a.is_national ? 1 : 0)).map((s) => {
-            const isExpanded = expandedScheme === s.short_name;
-            return (
-              <div key={s.short_name} className="rounded-lg border border-border/50 overflow-hidden">
-                <button
-                  onClick={() => setExpandedScheme(isExpanded ? null : s.short_name)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-muted/50 transition-colors"
-                >
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                  <span className={`px-1.5 py-0 rounded text-[9px] font-bold flex-shrink-0 ${
-                    s.is_national
-                      ? "bg-blue-500/15 text-blue-600 dark:text-blue-400"
-                      : "bg-amber-500/15 text-amber-600 dark:text-amber-400"
-                  }`}>
-                    {s.is_national ? "Central" : "State"}
-                  </span>
-                  <span className="text-xs font-medium text-foreground flex-1 truncate">{s.short_name}</span>
-                  {s.coverage && (
-                    <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex-shrink-0">
-                      {s.coverage}
+          {[...doctor.schemes]
+            .sort((a, b) => (b.is_national ? 1 : 0) - (a.is_national ? 1 : 0))
+            .map((s) => {
+              const isExpanded = expandedScheme === s.short_name;
+              return (
+                <div key={s.short_name} className="rounded-lg border border-border/50 overflow-hidden">
+                  <button
+                    onClick={() => setExpandedScheme(isExpanded ? null : s.short_name)}
+                    className="w-full flex items-center gap-1.5 px-2.5 py-1.5 text-left hover:bg-muted/50 transition-colors"
+                  >
+                    <CheckCircle className="w-3 h-3 text-success flex-shrink-0" />
+                    <span className={`px-1 py-0 rounded text-[9px] font-bold flex-shrink-0 ${
+                      s.is_national
+                        ? "bg-primary/10 text-primary"
+                        : "bg-warning/10 text-warning"
+                    }`}>
+                      {s.is_national ? t("doctors.central") : t("doctors.stateSchemes")}
                     </span>
-                  )}
-                  {isExpanded ? (
-                    <ChevronUp className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                  )}
-                </button>
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-3 pb-3 space-y-2 border-t border-border/30 pt-2">
-                        <p className="text-xs text-foreground font-medium">{s.name}</p>
-                        {s.description && (
-                          <p className="text-[11px] text-muted-foreground">{s.description}</p>
-                        )}
-                        {s.eligibility && (
-                          <div className="flex items-start gap-1.5">
-                            <Users className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <p className="text-[11px] text-muted-foreground">
-                              <span className="font-medium text-foreground">Eligibility:</span> {s.eligibility}
-                            </p>
-                          </div>
-                        )}
-                        {s.official_url && (
-                          <a
-                            href={s.official_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            Official Portal
-                          </a>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            );
-          })}
+                    <span className="text-[11px] font-medium text-foreground flex-1 truncate">{s.short_name}</span>
+                    {s.coverage && (
+                      <span className="text-[10px] font-medium text-success flex-shrink-0 hidden sm:inline">
+                        {s.coverage}
+                      </span>
+                    )}
+                    {isExpanded ? (
+                      <ChevronUp className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-2.5 pb-2.5 space-y-1.5 border-t border-border/30 pt-2">
+                          <p className="text-[11px] text-foreground font-medium">{s.name}</p>
+                          {s.description && (
+                            <p className="text-[10px] text-muted-foreground leading-relaxed">{s.description}</p>
+                          )}
+                          {s.eligibility && (
+                            <div className="flex items-start gap-1">
+                              <Users className="w-3 h-3 text-muted-foreground mt-0.5 flex-shrink-0" />
+                              <p className="text-[10px] text-muted-foreground">
+                                <span className="font-medium text-foreground">Eligibility:</span> {s.eligibility}
+                              </p>
+                            </div>
+                          )}
+                          {s.official_url && (
+                            <a
+                              href={s.official_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10px] text-success hover:underline"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Official Portal
+                            </a>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
         </div>
 
         {/* CTA */}
-        <GlowButton
-          size="sm"
-          className="w-full bg-emerald-500 hover:bg-emerald-600"
-          onClick={() => {
-            if (doctor.hospital.phone) {
-              window.open(`tel:${doctor.hospital.phone}`);
-            } else {
-              alert(`Contact ${doctor.hospital.name} to book under government scheme.`);
-            }
-          }}
-        >
-          <Phone className="w-4 h-4 mr-1.5" />
-          Contact Hospital
-        </GlowButton>
+        <div className="mt-auto pt-1">
+          <GlowButton
+            size="sm"
+            className="w-full"
+            onClick={() => {
+              if (doctor.hospital.phone) {
+                window.open(`tel:${doctor.hospital.phone}`);
+              } else {
+                alert(`Contact ${doctor.hospital.name} to book under government scheme.`);
+              }
+            }}
+          >
+            <Phone className="w-3.5 h-3.5 mr-1" />
+            {t("doctors.bookAppointment").split(" ")[0]}
+          </GlowButton>
+        </div>
       </div>
     </motion.div>
   );
