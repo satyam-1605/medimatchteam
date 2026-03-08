@@ -15,12 +15,14 @@ import {
   Map,
   List,
   Navigation,
+  Shield,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import DoctorCard from "@/components/doctors/DoctorCard";
 import BookingDialog from "@/components/doctors/BookingDialog";
 import DoctorMap from "@/components/doctors/DoctorMap";
+import SchemeDoctorCard, { type SchemeDoctor } from "@/components/doctors/SchemeDoctorCard";
 import { supabase } from "@/integrations/supabase/client";
 
 const specialties = [
