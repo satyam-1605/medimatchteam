@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Activity, Menu, X, LogIn, CalendarCheck, UserCircle } from "lucide-react";
+import { Activity, Menu, X, LogIn, UserCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,11 +68,6 @@ const Navbar = () => {
                 <Link to="/profile">
                   <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <UserCircle className="w-4 h-4" />
-                  </button>
-                </Link>
-                <Link to="/my-bookings">
-                  <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    <CalendarCheck className="w-4 h-4" />
                   </button>
                 </Link>
               </>
