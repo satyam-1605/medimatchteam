@@ -224,10 +224,10 @@ const DoctorDirectory = () => {
       // Fetch all schemes for the filter dropdown
       const { data: schemesData } = await supabase
         .from("government_schemes_db")
-        .select("short_name, name")
+        .select("short_name, name, is_national, state")
         .order("is_national", { ascending: false })
         .order("state");
-      if (schemesData) setAvailableSchemes(schemesData);
+      if (schemesData) setAvailableSchemes(schemesData as any);
 
       const { data, error } = await supabase
         .from("scheme_doctors")
