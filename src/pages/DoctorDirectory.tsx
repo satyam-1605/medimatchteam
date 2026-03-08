@@ -215,6 +215,15 @@ const DoctorDirectory = () => {
   useEffect(() => {
     const fetchSchemeDoctors = async () => {
       setSchemeDoctorsLoading(true);
+
+      // Fetch all schemes for the filter dropdown
+      const { data: schemesData } = await supabase
+        .from("government_schemes_db")
+        .select("short_name, name")
+        .order("is_national", { ascending: false })
+        .order("state");
+      if (schemesData) setAvailableSchemes(schemesData);
+
       const { data, error } = await supabase
         .from("scheme_doctors")
         .select(`
@@ -222,7 +231,7 @@ const DoctorDirectory = () => {
           hospital:hospitals!inner(id, name, address, city, state, latitude, longitude, phone),
           hospitals!inner(
             hospital_schemes(
-              scheme:government_schemes_db(short_name, name, coverage)
+              scheme:government_schemes_db(short_name, name, coverage, description, eligibility, official_url)
             )
           )
         `);
