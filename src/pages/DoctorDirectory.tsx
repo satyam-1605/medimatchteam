@@ -687,8 +687,7 @@ const DoctorDirectory = () => {
             </div>
           )}
 
-          {/* Empty State */}
-          {sortedDoctors.length === 0 && (
+          {!showSchemeOnly && sortedDoctors.length === 0 && (
             <motion.div
               className="text-center py-20"
               initial={{ opacity: 0, scale: 0.95 }}
