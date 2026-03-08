@@ -30,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useSpeechToText } from "@/hooks/useSpeechToText";
 import { useToast } from "@/hooks/use-toast";
+import MedicalReportUpload, { type UploadedReport } from "@/components/symptoms/MedicalReportUpload";
 
 const BodyDiagram3D = lazy(() => import("@/components/symptoms/BodyDiagram3D"));
 
