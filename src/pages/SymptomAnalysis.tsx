@@ -20,6 +20,7 @@ import {
   ArrowRight,
   Plus,
   X,
+  FileText,
 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
