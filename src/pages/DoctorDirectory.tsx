@@ -656,10 +656,13 @@ const DoctorDirectory = () => {
             ) : filteredSchemeDoctors.length === 0 ? (
               <EmptyState icon={Shield} title={t("doctors.noSchemeDoctors")} hint={t("doctors.noSchemeDoctorsHint")} onClear={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }} clearLabel={t("doctors.clearAllFilters")} />
             ) : (
-              <div className={viewMode === "split" ? "grid lg:grid-cols-2 gap-5" : ""}>
+              <div className={viewMode === "split" ? "flex gap-5" : ""}>
                 {viewMode !== "map" && (
                   <div
-                    className={`grid gap-4 ${viewMode === "split" ? "grid-cols-1 max-h-[70vh] overflow-y-auto pr-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"}`}
+                    className={viewMode === "split"
+                      ? "w-1/2 flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1"
+                      : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                    }
                   >
                     {filteredSchemeDoctors.map((doctor, index) => (
                       <SchemeDoctorCard key={doctor.id} doctor={doctor} index={index} />
@@ -667,7 +670,7 @@ const DoctorDirectory = () => {
                   </div>
                 )}
                 {viewMode !== "list" && (
-                  <div className="bg-card border border-border rounded-2xl overflow-hidden" style={{ height: "70vh" }}>
+                  <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2" : ""}`} style={{ height: "70vh" }}>
                     <DoctorMap doctors={schemeMapDoctors} userLocation={userLocation} />
                   </div>
                 )}
@@ -678,12 +681,15 @@ const DoctorDirectory = () => {
             sortedDoctors.length === 0 ? (
               <EmptyState icon={Search} title={t("doctors.noSpecialistsFound")} hint={t("doctors.noSpecialistsHint")} onClear={() => { setSearchQuery(""); setSelectedSpecialty("All Specialties"); setMaxDistance(100); }} clearLabel={t("doctors.clearAllFilters")} />
             ) : (
-              <div className={viewMode === "split" ? "grid lg:grid-cols-2 gap-5" : ""}>
+              <div className={viewMode === "split" ? "flex gap-5" : ""}>
                 {viewMode !== "map" && (
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={selectedSpecialty + sortBy + maxDistance}
-                      className={`grid gap-4 ${viewMode === "split" ? "grid-cols-1 max-h-[70vh] overflow-y-auto pr-1" : "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"}`}
+                      className={viewMode === "split"
+                        ? "w-1/2 flex flex-col gap-4 max-h-[70vh] overflow-y-auto pr-1"
+                        : "grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+                      }
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
@@ -696,7 +702,7 @@ const DoctorDirectory = () => {
                   </AnimatePresence>
                 )}
                 {viewMode !== "list" && (
-                  <div className="bg-card border border-border rounded-2xl overflow-hidden" style={{ height: "70vh" }}>
+                  <div className={`bg-card border border-border rounded-2xl overflow-hidden ${viewMode === "split" ? "w-1/2" : ""}`} style={{ height: "70vh" }}>
                     <DoctorMap doctors={mapDoctors} userLocation={userLocation} />
                   </div>
                 )}
