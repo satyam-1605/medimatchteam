@@ -13,6 +13,7 @@ interface SymptomAnalysisRequest {
   gender: string;
   medications: string[];
   language?: string;
+  reportTexts?: string[];
 }
 
 interface SpecialistRecommendation {
@@ -64,10 +65,10 @@ serve(async (req) => {
     const requestData: SymptomAnalysisRequest = await req.json();
     console.log('Received symptom analysis request:', JSON.stringify(requestData, null, 2));
 
-    const { symptoms, quickSymptoms, bodyParts, age, gender, medications, language } = requestData;
+    const { symptoms, quickSymptoms, bodyParts, age, gender, medications, language, reportTexts } = requestData;
 
     const systemPrompt = buildSystemPrompt(language);
-    const userPrompt = buildUserPrompt(symptoms, quickSymptoms, bodyParts, age, gender, medications);
+    const userPrompt = buildUserPrompt(symptoms, quickSymptoms, bodyParts, age, gender, medications, reportTexts);
 
     console.log('Sending request to Lovable AI Gateway...');
     
@@ -243,7 +244,8 @@ function buildUserPrompt(
   bodyParts: Array<{ part: string; symptomType: string }>,
   age: number,
   gender: string,
-  medications: string[]
+  medications: string[],
+  reportTexts?: string[]
 ): string {
   const bodyPartsDescription = bodyParts.length > 0
     ? bodyParts.map(bp => `${bp.part} (${bp.symptomType})`).join(', ')
@@ -252,12 +254,21 @@ function buildUserPrompt(
   const medicationsText = medications.length > 0 ? medications.join(', ') : 'None reported';
   const quickSymptomsText = quickSymptoms.length > 0 ? quickSymptoms.join(', ') : 'None selected';
 
-  return `Patient age: ${age}, gender: ${gender || 'Not specified'}, medications: ${medicationsText}.
+  let prompt = `Patient age: ${age}, gender: ${gender || 'Not specified'}, medications: ${medicationsText}.
 Symptoms described: "${symptoms || 'None provided'}".
 Quick-selected symptoms: ${quickSymptomsText}.
-Affected body areas: ${bodyPartsDescription}.
+Affected body areas: ${bodyPartsDescription}.`;
 
-Analyze these symptoms and return the JSON response.`;
+  if (reportTexts && reportTexts.length > 0) {
+    prompt += `\n\nMEDICAL REPORTS ATTACHED (${reportTexts.length}):\n`;
+    reportTexts.forEach((text, i) => {
+      prompt += `\n--- Report ${i + 1} ---\n${text.slice(0, 3000)}\n`;
+    });
+    prompt += `\nIMPORTANT: Consider the medical report data above when analyzing. Look for abnormal values, existing diagnoses, and correlate with the described symptoms.`;
+  }
+
+  prompt += `\n\nAnalyze these symptoms and return the JSON response.`;
+  return prompt;
 }
 
 function parseAIResponse(
