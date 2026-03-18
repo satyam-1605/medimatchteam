@@ -58,7 +58,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       return;
     }
     const ref = generateRef();
-    const { error } = await supabase.from("appointments").insert({
+    const { data: inserted, error } = await supabase.from("appointments").insert({
       user_id: session.user.id,
       booking_ref: ref,
       doctor_id: doctor.id,
@@ -67,10 +67,10 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       time_slot: timeSlot,
       reason: reason || null,
       consultation_type: consultationType,
-    });
+    }).select("id").single();
     setLoading(false);
-    if (error) {
-      toast({ title: "Booking failed", description: error.message, variant: "destructive" });
+    if (error || !inserted) {
+      toast({ title: "Booking failed", description: error?.message, variant: "destructive" });
     } else {
       setBookingRef(ref);
       setConfirmed(true);
