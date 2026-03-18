@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { CalendarIcon, Check, Video, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,6 +32,7 @@ const TIME_SLOTS = [
 ];
 
 const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState("");
@@ -39,6 +41,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [bookingRef, setBookingRef] = useState("");
+  const [appointmentId, setAppointmentId] = useState("");
 
   const generateRef = () => `MED-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
@@ -55,7 +58,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       return;
     }
     const ref = generateRef();
-    const { error } = await supabase.from("appointments").insert({
+    const { data: inserted, error } = await supabase.from("appointments").insert({
       user_id: session.user.id,
       booking_ref: ref,
       doctor_id: doctor.id,
@@ -64,12 +67,13 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       time_slot: timeSlot,
       reason: reason || null,
       consultation_type: consultationType,
-    });
+    }).select("id").single();
     setLoading(false);
-    if (error) {
-      toast({ title: "Booking failed", description: error.message, variant: "destructive" });
+    if (error || !inserted) {
+      toast({ title: "Booking failed", description: error?.message, variant: "destructive" });
     } else {
       setBookingRef(ref);
+      setAppointmentId(inserted.id);
       setConfirmed(true);
       await createBookingNotification({
         doctorName: doctor.name,
@@ -91,6 +95,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       setConsultationType("in-person");
       setConfirmed(false);
       setBookingRef("");
+      setAppointmentId("");
     }, 300);
   };
 
@@ -118,7 +123,16 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
               <span className="text-xs text-muted-foreground">Booking Ref:</span>
               <span className="ml-2 font-mono font-bold text-primary">{bookingRef}</span>
             </div>
-            <GlowButton onClick={handleClose} className="mt-4">Done</GlowButton>
+            {consultationType === "video" && (
+              <Button
+                onClick={() => navigate(`/video-call/${appointmentId}`)}
+                className="mt-3 w-full gap-2"
+                variant="outline"
+              >
+                <Video className="w-4 h-4" /> Join Video Call
+              </Button>
+            )}
+            <GlowButton onClick={handleClose} className="mt-2">Done</GlowButton>
           </div>
         ) : (
           <div className="space-y-5">

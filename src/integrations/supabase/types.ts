@@ -310,6 +310,56 @@ export type Database = {
           },
         ]
       }
+      video_sessions: {
+        Row: {
+          answer: Json | null
+          appointment_id: string
+          created_at: string
+          doctor_id: number
+          ice_candidates_answer: Json | null
+          ice_candidates_offer: Json | null
+          id: string
+          offer: Json | null
+          patient_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: Json | null
+          appointment_id: string
+          created_at?: string
+          doctor_id: number
+          ice_candidates_answer?: Json | null
+          ice_candidates_offer?: Json | null
+          id?: string
+          offer?: Json | null
+          patient_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: Json | null
+          appointment_id?: string
+          created_at?: string
+          doctor_id?: number
+          ice_candidates_answer?: Json | null
+          ice_candidates_offer?: Json | null
+          id?: string
+          offer?: Json | null
+          patient_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_sessions_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
