@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
 import MyBookings from "./pages/MyBookings";
 import Profile from "./pages/Profile";
+import VideoCall from "./pages/VideoCall";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
