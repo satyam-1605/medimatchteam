@@ -73,6 +73,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       toast({ title: "Booking failed", description: error?.message, variant: "destructive" });
     } else {
       setBookingRef(ref);
+      setAppointmentId(inserted.id);
       setConfirmed(true);
       await createBookingNotification({
         doctorName: doctor.name,
