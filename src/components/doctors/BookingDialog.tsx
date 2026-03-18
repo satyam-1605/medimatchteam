@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { CalendarIcon, Check, Video, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
