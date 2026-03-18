@@ -41,6 +41,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [bookingRef, setBookingRef] = useState("");
+  const [appointmentId, setAppointmentId] = useState("");
 
   const generateRef = () => `MED-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
