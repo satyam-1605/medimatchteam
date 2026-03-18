@@ -95,6 +95,7 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
       setConsultationType("in-person");
       setConfirmed(false);
       setBookingRef("");
+      setAppointmentId("");
     }, 300);
   };
 
