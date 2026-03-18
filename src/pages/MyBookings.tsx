@@ -142,12 +142,22 @@ const MyBookings = () => {
                         {cfg.label}
                       </span>
                       {appt.status === "confirmed" && (
-                        <button
-                          onClick={() => cancelAppointment(appt)}
-                          className="text-xs text-destructive hover:underline"
-                        >
-                          Cancel
-                        </button>
+                        <div className="flex flex-col items-end gap-1.5">
+                          {appt.consultation_type === "video" && (
+                            <button
+                              onClick={() => navigate(`/video-call/${appt.id}`)}
+                              className="flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                            >
+                              <Video className="w-3.5 h-3.5" /> Join Call
+                            </button>
+                          )}
+                          <button
+                            onClick={() => cancelAppointment(appt)}
+                            className="text-xs text-destructive hover:underline"
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
