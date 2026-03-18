@@ -122,7 +122,16 @@ const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
               <span className="text-xs text-muted-foreground">Booking Ref:</span>
               <span className="ml-2 font-mono font-bold text-primary">{bookingRef}</span>
             </div>
-            <GlowButton onClick={handleClose} className="mt-4">Done</GlowButton>
+            {consultationType === "video" && (
+              <Button
+                onClick={() => navigate(`/video-call/${appointmentId}`)}
+                className="mt-3 w-full gap-2"
+                variant="outline"
+              >
+                <Video className="w-4 h-4" /> Join Video Call
+              </Button>
+            )}
+            <GlowButton onClick={handleClose} className="mt-2">Done</GlowButton>
           </div>
         ) : (
           <div className="space-y-5">
