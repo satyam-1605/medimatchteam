@@ -32,6 +32,7 @@ const TIME_SLOTS = [
 ];
 
 const BookingDialog = ({ open, onOpenChange, doctor }: BookingDialogProps) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const [timeSlot, setTimeSlot] = useState("");
