@@ -170,9 +170,9 @@ const VideoCall = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {inWaitingRoom && <Navbar />}
-      <div className={`flex-1 flex items-center justify-center ${inWaitingRoom ? "pt-20 pb-8 px-4" : "p-4"}`}>
+      <div className={`flex-1 flex items-center justify-center ${inWaitingRoom ? "pt-20 pb-8 px-4" : "p-2"}`}>
         <motion.div
-          className={inWaitingRoom ? "w-full max-w-md" : "w-full h-full"}
+          className={inWaitingRoom ? "w-full max-w-md" : "w-full h-[calc(100vh-1rem)]"}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
         >

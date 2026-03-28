@@ -41,7 +41,7 @@ const VideoCallView = ({
   const hasRemote = callStatus === "connected" && remoteStream && remoteStream.getTracks().length > 0;
 
   return (
-    <div className="relative w-full h-full flex flex-col">
+    <div className="relative w-full h-[calc(100vh-2rem)] flex flex-col">
       {/* Remote video (full area) */}
       <div className="flex-1 relative bg-muted rounded-2xl overflow-hidden">
         {hasRemote ? (
