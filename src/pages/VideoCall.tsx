@@ -83,8 +83,22 @@ const VideoCall = () => {
           .single();
 
         if (createError) {
-          console.error("Video session create error:", createError);
-          setInitError("Failed to create video session: " + createError.message);
+          // Handle duplicate — session was created between our check and insert
+          if (createError.code === "23505") {
+            const { data: retry } = await supabase
+              .from("video_sessions")
+              .select("id")
+              .eq("appointment_id", appointmentId)
+              .single();
+            if (retry) {
+              setSessionId(retry.id);
+            } else {
+              setInitError("Failed to find video session");
+            }
+          } else {
+            console.error("Video session create error:", createError);
+            setInitError("Failed to create video session: " + createError.message);
+          }
         } else {
           setSessionId(created.id);
         }
