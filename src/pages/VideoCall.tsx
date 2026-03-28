@@ -83,7 +83,8 @@ const VideoCall = () => {
           .single();
 
         if (createError) {
-          setInitError("Failed to create video session");
+          console.error("Video session create error:", createError);
+          setInitError("Failed to create video session: " + createError.message);
         } else {
           setSessionId(created.id);
         }
