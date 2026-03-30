@@ -35,6 +35,7 @@ const App = () => (
           <Route path="/my-bookings" element={<MyBookings />} />
           <Route path="/video-call/:appointmentId" element={<VideoCall />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
