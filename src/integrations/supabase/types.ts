@@ -56,6 +56,30 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_profiles: {
+        Row: {
+          created_at: string | null
+          doctor_id: number
+          full_name: string
+          id: string
+          specialty: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          doctor_id: number
+          full_name: string
+          id: string
+          specialty?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          doctor_id?: number
+          full_name?: string
+          id?: string
+          specialty?: string | null
+        }
+        Relationships: []
+      }
       government_schemes_db: {
         Row: {
           coverage: string | null
@@ -310,6 +334,24 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       video_sessions: {
         Row: {
           answer: Json | null
@@ -365,10 +407,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "doctor" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -495,6 +543,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "doctor", "user"],
+    },
   },
 } as const
