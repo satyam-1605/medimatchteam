@@ -25,14 +25,24 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
 
+  const redirectByRole = async (userId: string) => {
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+
+    const isDoctor = roles?.some((r: any) => r.role === "doctor");
+    navigate(isDoctor ? "/doctor-dashboard" : "/doctors");
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/doctors");
+        redirectByRole(session.user.id);
       }
     });
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) navigate("/doctors");
+      if (session) redirectByRole(session.user.id);
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
