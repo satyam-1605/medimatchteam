@@ -5,7 +5,6 @@ import {
   MapPin,
   Clock,
   Calendar,
-  Video,
   Globe,
   Briefcase,
   Shield,
