@@ -136,15 +136,6 @@ const DoctorCard = ({ doctor, index = 0, onBook }: DoctorCardProps) => {
 
         {/* Actions - pushed to bottom */}
         <div className="flex gap-2 mt-auto pt-1">
-          {doctor.videoCallAvailable && (
-            <button
-              onClick={() => alert("Video call would start here. (Demo)")}
-              className="flex-1 flex items-center justify-center gap-1 px-2 py-2 rounded-xl bg-primary/10 border border-primary/25 text-primary hover:bg-primary/20 transition-colors text-xs font-medium"
-            >
-              <Video className="w-3.5 h-3.5" />
-              {t("doctors.videoCall").split(" ")[0]}
-            </button>
-          )}
           <GlowButton
             size="sm"
             className="flex-1"
