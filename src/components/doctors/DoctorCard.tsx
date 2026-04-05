@@ -108,8 +108,7 @@ const DoctorCard = ({ doctor, index = 0, onBook }: DoctorCardProps) => {
           </span>
           {doctor.videoCallAvailable && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-[11px] text-primary border border-primary/20">
-              <Video className="w-3 h-3 flex-shrink-0" />
-              Video
+              📹 Video
             </span>
           )}
         </div>
