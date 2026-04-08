@@ -80,6 +80,45 @@ export type Database = {
         }
         Relationships: []
       }
+      doctor_registrations: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          full_name: string
+          id: string
+          invite_code: string | null
+          license_number: string
+          specialty: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          invite_code?: string | null
+          license_number: string
+          specialty: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          invite_code?: string | null
+          license_number?: string
+          specialty?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       government_schemes_db: {
         Row: {
           coverage: string | null
@@ -407,12 +446,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_doctor_registration: {
+        Args: { _registration_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      register_doctor_with_code: {
+        Args: {
+          _full_name: string
+          _invite_code: string
+          _license_number: string
+          _specialty: string
+          _user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

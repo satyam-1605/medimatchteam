@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Activity, Mail, Lock, User, Phone } from "lucide-react";
+import { Activity, Mail, Lock, User, Phone, Stethoscope } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import GlowButton from "@/components/ui/GlowButton";
+import DoctorRegistrationForm from "@/components/auth/DoctorRegistrationForm";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import { useToast } from "@/hooks/use-toast";
@@ -119,9 +120,12 @@ const Auth = () => {
           </div>
 
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="doctor" className="flex items-center gap-1">
+                <Stethoscope className="w-3 h-3" /> Doctor
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
@@ -246,6 +250,9 @@ const Auth = () => {
                   </GlowButton>
                 </button>
               </form>
+            </TabsContent>
+            <TabsContent value="doctor">
+              <DoctorRegistrationForm />
             </TabsContent>
           </Tabs>
         </motion.div>
