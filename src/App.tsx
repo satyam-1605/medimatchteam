@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import VideoCall from "./pages/VideoCall";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import Notifications from "./pages/Notifications";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
