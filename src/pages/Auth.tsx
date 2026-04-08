@@ -120,9 +120,12 @@ const Auth = () => {
           </div>
 
           <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="doctor" className="flex items-center gap-1">
+                <Stethoscope className="w-3 h-3" /> Doctor
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin">
