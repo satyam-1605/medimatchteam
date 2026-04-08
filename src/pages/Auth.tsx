@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import GlowButton from "@/components/ui/GlowButton";
+import DoctorRegistrationForm from "@/components/auth/DoctorRegistrationForm";
 import Navbar from "@/components/layout/Navbar";
 import ParticleBackground from "@/components/ui/ParticleBackground";
 import { useToast } from "@/hooks/use-toast";
