@@ -251,6 +251,9 @@ const Auth = () => {
                 </button>
               </form>
             </TabsContent>
+            <TabsContent value="doctor">
+              <DoctorRegistrationForm />
+            </TabsContent>
           </Tabs>
         </motion.div>
       </div>
