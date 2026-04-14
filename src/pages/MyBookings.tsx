@@ -23,6 +23,7 @@ interface Appointment {
 
 const statusConfig: Record<string, { icon: React.ElementType; color: string; label: string }> = {
   confirmed: { icon: CheckCircle, color: "text-success", label: "Confirmed" },
+  completed: { icon: CheckCircle, color: "text-primary", label: "Completed" },
   cancelled: { icon: XCircle, color: "text-destructive", label: "Cancelled" },
 };
 

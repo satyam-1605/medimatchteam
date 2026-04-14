@@ -69,18 +69,15 @@ const DoctorRegistrationForm = () => {
           });
         }
       } else {
-        // Submit registration request for admin approval
-        const { error: insertError } = await supabase
-          .from("doctor_registrations")
-          .insert({
-            user_id: signUpData.user.id,
-            full_name: fullName,
-            specialty,
-            license_number: licenseNumber,
-            status: "pending",
-          });
+        // Submit registration request for admin approval via RPC (bypasses RLS when session isn't established)
+        const { error: rpcError } = await supabase.rpc("submit_doctor_registration", {
+          _user_id: signUpData.user.id,
+          _full_name: fullName,
+          _specialty: specialty,
+          _license_number: licenseNumber,
+        });
 
-        if (insertError) throw insertError;
+        if (rpcError) throw rpcError;
 
         toast({
           title: "Registration submitted!",
