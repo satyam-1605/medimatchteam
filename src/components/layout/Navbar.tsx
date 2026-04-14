@@ -15,14 +15,28 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { t } = useTranslation();
   const [session, setSession] = useState<Session | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) checkAdmin(session.user.id);
+      else setIsAdmin(false);
     });
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) checkAdmin(session.user.id);
+    });
     return () => subscription.unsubscribe();
   }, []);
+
+  const checkAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    setIsAdmin(data?.some((r: any) => r.role === "admin") ?? false);
+  };
 
   const navLinks = [
     { path: "/", label: t("nav.home") },
@@ -65,6 +79,13 @@ const Navbar = () => {
             {session ? (
               <>
                 <NotificationBell />
+                {isAdmin && (
+                  <Link to="/admin">
+                    <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
+                      <Shield className="w-4 h-4" />
+                    </button>
+                  </Link>
+                )}
                 <Link to="/profile">
                   <button className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
                     <UserCircle className="w-4 h-4" />
@@ -103,9 +124,20 @@ const Navbar = () => {
             <div className="pt-4 flex flex-col gap-3">
               <LanguageSelector variant="dropdown" />
               {session ? (
-                <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
-                  <UserCircle className="w-4 h-4" /> Profile
-                </Link>
+                <>
+                  <div className="flex items-center gap-3 px-4">
+                    <NotificationBell />
+                    <span className="text-sm text-muted-foreground">Notifications</span>
+                  </div>
+                  {isAdmin && (
+                    <Link to="/admin" onClick={() => setIsOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+                      <Shield className="w-4 h-4" /> Admin Dashboard
+                    </Link>
+                  )}
+                  <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-foreground">
+                    <UserCircle className="w-4 h-4" /> Profile
+                  </Link>
+                </>
               ) : (
                 <Link to="/auth" onClick={() => setIsOpen(false)}>
                   <GlowButton size="sm" className="w-full">
