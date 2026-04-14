@@ -467,6 +467,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      submit_doctor_registration: {
+        Args: {
+          _full_name: string
+          _license_number: string
+          _specialty: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "doctor" | "user"
