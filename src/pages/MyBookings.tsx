@@ -26,6 +26,7 @@ const statusConfig: Record<string, { icon: React.ElementType; color: string; lab
   confirmed: { icon: CheckCircle, color: "text-success", label: "Confirmed" },
   completed: { icon: CheckCircle, color: "text-primary", label: "Completed" },
   cancelled: { icon: XCircle, color: "text-destructive", label: "Cancelled" },
+  passed: { icon: History, color: "text-muted-foreground", label: "Date has passed" },
 };
 
 const MyBookings = () => {
