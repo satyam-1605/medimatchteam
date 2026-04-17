@@ -225,12 +225,23 @@ const NotificationBell = () => {
                         ? "bg-primary/5 hover:bg-primary/10"
                         : "hover:bg-muted/50"
                     }`}
-                    onClick={() => {
+                    onClick={async () => {
                       if (!n.read) markAsRead(n.id);
-                      if (n.booking_ref) {
-                        navigate("/my-bookings");
-                        setOpen(false);
+                      if (!n.booking_ref) return;
+                      setOpen(false);
+                      if (n.type === "reminder") {
+                        const realRef = n.booking_ref.replace(/^REMIND-/, "");
+                        const { data: appt } = await supabase
+                          .from("appointments")
+                          .select("id, consultation_type")
+                          .eq("booking_ref", realRef)
+                          .maybeSingle();
+                        if (appt && appt.consultation_type === "video") {
+                          navigate(`/video-call/${appt.id}`);
+                          return;
+                        }
                       }
+                      navigate("/my-bookings");
                     }}
                   >
                     {/* Type icon */}
