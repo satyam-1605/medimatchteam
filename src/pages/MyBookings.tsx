@@ -105,83 +105,187 @@ const MyBookings = () => {
             <GlowButton onClick={() => navigate("/doctors")}>Find a Doctor</GlowButton>
           </div>
         ) : (
-          <div className="grid gap-4 max-w-2xl">
-            {appointments.map((appt, i) => {
-              const past = isAppointmentPast(appt.appointment_date, appt.time_slot);
-              const effectiveKey =
-                past && appt.status === "confirmed" ? "passed" : appt.status;
-              const cfg = statusConfig[effectiveKey] || statusConfig.confirmed;
-              const Icon = cfg.icon;
-              const canJoin =
-                appt.status === "confirmed" &&
-                appt.consultation_type === "video" &&
-                canJoinVideoCall(appt.appointment_date, appt.time_slot);
-              const canCancel = appt.status === "confirmed" && !past;
-              return (
-                <motion.div
-                  key={appt.id}
-                  className="glass-panel p-5 rounded-xl border border-border"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground">{appt.doctor_name}</h3>
-                      <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {appt.appointment_date}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5" />
-                          {appt.time_slot}
-                        </span>
-                        <span className="capitalize px-2 py-0.5 rounded-full bg-muted text-xs">
-                          {appt.consultation_type}
-                        </span>
-                      </div>
-                      {appt.reason && (
-                        <p className="text-xs text-muted-foreground mt-2 truncate">Reason: {appt.reason}</p>
-                      )}
-                      <div className="mt-2 text-xs font-mono text-muted-foreground">
-                        Ref: <span className="text-primary">{appt.booking_ref}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`flex items-center gap-1 text-sm font-medium ${cfg.color}`}>
-                        <Icon className="w-4 h-4" />
-                        {cfg.label}
-                      </span>
-                      {(canJoin || canCancel) && (
-                        <div className="flex flex-col items-end gap-1.5">
-                          {canJoin && (
-                            <button
-                              onClick={() => navigate(`/video-call/${appt.id}`)}
-                              className="flex items-center gap-1 text-xs text-primary hover:underline font-medium"
-                            >
-                              <Video className="w-3.5 h-3.5" /> Join Call
-                            </button>
-                          )}
-                          {canCancel && (
-                            <button
-                              onClick={() => cancelAppointment(appt)}
-                              className="text-xs text-destructive hover:underline"
-                            >
-                              Cancel
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+          <BookingsTabs
+            appointments={appointments}
+            onCancel={cancelAppointment}
+            onJoin={(id) => navigate(`/video-call/${id}`)}
+            onFindDoctor={() => navigate("/doctors")}
+          />
         )}
       </div>
     </div>
+  );
+};
+
+interface BookingsTabsProps {
+  appointments: Appointment[];
+  onCancel: (appt: Appointment) => void;
+  onJoin: (id: string) => void;
+  onFindDoctor: () => void;
+}
+
+const BookingsTabs = ({ appointments, onCancel, onJoin, onFindDoctor }: BookingsTabsProps) => {
+  const { upcoming, past } = useMemo(() => {
+    const upcoming: Appointment[] = [];
+    const past: Appointment[] = [];
+    for (const a of appointments) {
+      const ended = isAppointmentPast(a.appointment_date, a.time_slot);
+      const isHistorical = a.status !== "confirmed" || ended;
+      if (isHistorical) past.push(a);
+      else upcoming.push(a);
+    }
+    // Upcoming: soonest first. Past: most recent first.
+    upcoming.sort((a, b) => a.appointment_date.localeCompare(b.appointment_date));
+    past.sort((a, b) => b.appointment_date.localeCompare(a.appointment_date));
+    return { upcoming, past };
+  }, [appointments]);
+
+  return (
+    <Tabs defaultValue="upcoming" className="max-w-2xl">
+      <TabsList className="grid w-full grid-cols-2 mb-4">
+        <TabsTrigger value="upcoming">
+          Upcoming{upcoming.length > 0 && ` (${upcoming.length})`}
+        </TabsTrigger>
+        <TabsTrigger value="past">
+          Past{past.length > 0 && ` (${past.length})`}
+        </TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="upcoming" className="mt-0">
+        {upcoming.length === 0 ? (
+          <EmptyState
+            label="No upcoming appointments."
+            actionLabel="Find a Doctor"
+            onAction={onFindDoctor}
+          />
+        ) : (
+          <div className="grid gap-4">
+            {upcoming.map((appt, i) => (
+              <BookingCard
+                key={appt.id}
+                appt={appt}
+                index={i}
+                onCancel={onCancel}
+                onJoin={onJoin}
+              />
+            ))}
+          </div>
+        )}
+      </TabsContent>
+
+      <TabsContent value="past" className="mt-0">
+        {past.length === 0 ? (
+          <EmptyState label="No past appointments yet." />
+        ) : (
+          <div className="grid gap-4">
+            {past.map((appt, i) => (
+              <BookingCard
+                key={appt.id}
+                appt={appt}
+                index={i}
+                onCancel={onCancel}
+                onJoin={onJoin}
+              />
+            ))}
+          </div>
+        )}
+      </TabsContent>
+    </Tabs>
+  );
+};
+
+const EmptyState = ({
+  label,
+  actionLabel,
+  onAction,
+}: {
+  label: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) => (
+  <div className="text-center py-16 glass-panel rounded-xl border border-border">
+    <AlertCircle className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+    <p className="text-muted-foreground mb-4">{label}</p>
+    {actionLabel && onAction && <GlowButton onClick={onAction}>{actionLabel}</GlowButton>}
+  </div>
+);
+
+interface BookingCardProps {
+  appt: Appointment;
+  index: number;
+  onCancel: (appt: Appointment) => void;
+  onJoin: (id: string) => void;
+}
+
+const BookingCard = ({ appt, index, onCancel, onJoin }: BookingCardProps) => {
+  const past = isAppointmentPast(appt.appointment_date, appt.time_slot);
+  const effectiveKey = past && appt.status === "confirmed" ? "passed" : appt.status;
+  const cfg = statusConfig[effectiveKey] || statusConfig.confirmed;
+  const Icon = cfg.icon;
+  const canJoin =
+    appt.status === "confirmed" &&
+    appt.consultation_type === "video" &&
+    canJoinVideoCall(appt.appointment_date, appt.time_slot);
+  const canCancel = appt.status === "confirmed" && !past;
+
+  return (
+    <motion.div
+      className="glass-panel p-5 rounded-xl border border-border"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground">{appt.doctor_name}</h3>
+          <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Calendar className="w-3.5 h-3.5" />
+              {appt.appointment_date}
+            </span>
+            <span className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              {appt.time_slot}
+            </span>
+            <span className="capitalize px-2 py-0.5 rounded-full bg-muted text-xs">
+              {appt.consultation_type}
+            </span>
+          </div>
+          {appt.reason && (
+            <p className="text-xs text-muted-foreground mt-2 truncate">Reason: {appt.reason}</p>
+          )}
+          <div className="mt-2 text-xs font-mono text-muted-foreground">
+            Ref: <span className="text-primary">{appt.booking_ref}</span>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <span className={`flex items-center gap-1 text-sm font-medium ${cfg.color}`}>
+            <Icon className="w-4 h-4" />
+            {cfg.label}
+          </span>
+          {(canJoin || canCancel) && (
+            <div className="flex flex-col items-end gap-1.5">
+              {canJoin && (
+                <button
+                  onClick={() => onJoin(appt.id)}
+                  className="flex items-center gap-1 text-xs text-primary hover:underline font-medium"
+                >
+                  <Video className="w-3.5 h-3.5" /> Join Call
+                </button>
+              )}
+              {canCancel && (
+                <button
+                  onClick={() => onCancel(appt)}
+                  className="text-xs text-destructive hover:underline"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
