@@ -1,7 +1,8 @@
-import { Calendar, Clock, User, Video, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Clock, User, Video, MapPin, CheckCircle, XCircle, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { isAppointmentPast } from "@/lib/appointmentTime";
 
 interface Appointment {
   id: string;
@@ -25,11 +26,15 @@ const statusColors: Record<string, string> = {
   confirmed: "bg-primary/20 text-primary border-primary/30",
   completed: "bg-[hsl(var(--success))]/20 text-[hsl(var(--success))] border-[hsl(var(--success))]/30",
   cancelled: "bg-destructive/20 text-destructive border-destructive/30",
+  passed: "bg-muted text-muted-foreground border-border",
 };
 
 const DoctorAppointmentCard = ({ appointment, onUpdateStatus, loading }: DoctorAppointmentCardProps) => {
-  const isUpcoming = new Date(appointment.appointment_date) >= new Date(new Date().toDateString());
-  const canAct = appointment.status === "confirmed" && isUpcoming;
+  const past = isAppointmentPast(appointment.appointment_date, appointment.time_slot);
+  const isPendingPast = past && appointment.status === "confirmed";
+  const displayStatus = isPendingPast ? "passed" : appointment.status || "confirmed";
+  const displayLabel = isPendingPast ? "Date has passed" : displayStatus;
+  const canAct = appointment.status === "confirmed" && !past;
 
   return (
     <div className="glass-panel rounded-xl p-5 border border-border/50 space-y-3">
@@ -43,8 +48,9 @@ const DoctorAppointmentCard = ({ appointment, onUpdateStatus, loading }: DoctorA
           </div>
           <p className="text-xs text-muted-foreground">Ref: {appointment.booking_ref}</p>
         </div>
-        <Badge className={statusColors[appointment.status || "confirmed"] || "bg-muted text-muted-foreground"}>
-          {appointment.status || "confirmed"}
+        <Badge className={statusColors[displayStatus] || "bg-muted text-muted-foreground"}>
+          {isPendingPast && <History className="w-3 h-3 mr-1 inline" />}
+          {displayLabel}
         </Badge>
       </div>
 
