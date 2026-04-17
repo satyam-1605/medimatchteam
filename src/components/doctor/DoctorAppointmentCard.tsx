@@ -1,7 +1,8 @@
-import { Calendar, Clock, User, Video, MapPin, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, Clock, User, Video, MapPin, CheckCircle, XCircle, History } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { isAppointmentPast } from "@/lib/appointmentTime";
 
 interface Appointment {
   id: string;
