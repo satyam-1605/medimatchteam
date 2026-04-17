@@ -249,7 +249,7 @@ const Notifications = () => {
                     </p>
                     {n.booking_ref && (
                       <span className="inline-block mt-1.5 text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                        Ref: {n.booking_ref}
+                        Ref: {n.booking_ref.replace(/^REMIND-/, "")}
                       </span>
                     )}
                     <p className="text-[10px] text-muted-foreground/60 mt-1.5 font-medium">
