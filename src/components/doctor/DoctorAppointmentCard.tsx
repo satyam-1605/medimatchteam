@@ -48,8 +48,9 @@ const DoctorAppointmentCard = ({ appointment, onUpdateStatus, loading }: DoctorA
           </div>
           <p className="text-xs text-muted-foreground">Ref: {appointment.booking_ref}</p>
         </div>
-        <Badge className={statusColors[appointment.status || "confirmed"] || "bg-muted text-muted-foreground"}>
-          {appointment.status || "confirmed"}
+        <Badge className={statusColors[displayStatus] || "bg-muted text-muted-foreground"}>
+          {isPendingPast && <History className="w-3 h-3 mr-1 inline" />}
+          {displayLabel}
         </Badge>
       </div>
 
