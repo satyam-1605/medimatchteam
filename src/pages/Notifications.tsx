@@ -205,9 +205,22 @@ const Notifications = () => {
                       ? "bg-primary/5 hover:bg-primary/10"
                       : "hover:bg-muted/50"
                   }`}
-                  onClick={() => {
+                  onClick={async () => {
                     if (!n.read) markAsRead(n.id);
-                    if (n.booking_ref) navigate("/my-bookings");
+                    if (!n.booking_ref) return;
+                    if (n.type === "reminder") {
+                      const realRef = n.booking_ref.replace(/^REMIND-/, "");
+                      const { data: appt } = await supabase
+                        .from("appointments")
+                        .select("id, consultation_type")
+                        .eq("booking_ref", realRef)
+                        .maybeSingle();
+                      if (appt && appt.consultation_type === "video") {
+                        navigate(`/video-call/${appt.id}`);
+                        return;
+                      }
+                    }
+                    navigate("/my-bookings");
                   }}
                 >
                   {/* Type icon */}
@@ -236,7 +249,7 @@ const Notifications = () => {
                     </p>
                     {n.booking_ref && (
                       <span className="inline-block mt-1.5 text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-                        Ref: {n.booking_ref}
+                        Ref: {n.booking_ref.replace(/^REMIND-/, "")}
                       </span>
                     )}
                     <p className="text-[10px] text-muted-foreground/60 mt-1.5 font-medium">
