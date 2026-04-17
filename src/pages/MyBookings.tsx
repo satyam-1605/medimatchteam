@@ -106,8 +106,16 @@ const MyBookings = () => {
         ) : (
           <div className="grid gap-4 max-w-2xl">
             {appointments.map((appt, i) => {
-              const cfg = statusConfig[appt.status] || statusConfig.confirmed;
+              const past = isAppointmentPast(appt.appointment_date, appt.time_slot);
+              const effectiveKey =
+                past && appt.status === "confirmed" ? "passed" : appt.status;
+              const cfg = statusConfig[effectiveKey] || statusConfig.confirmed;
               const Icon = cfg.icon;
+              const canJoin =
+                appt.status === "confirmed" &&
+                appt.consultation_type === "video" &&
+                canJoinVideoCall(appt.appointment_date, appt.time_slot);
+              const canCancel = appt.status === "confirmed" && !past;
               return (
                 <motion.div
                   key={appt.id}
@@ -144,9 +152,9 @@ const MyBookings = () => {
                         <Icon className="w-4 h-4" />
                         {cfg.label}
                       </span>
-                      {appt.status === "confirmed" && (
+                      {(canJoin || canCancel) && (
                         <div className="flex flex-col items-end gap-1.5">
-                          {appt.consultation_type === "video" && (
+                          {canJoin && (
                             <button
                               onClick={() => navigate(`/video-call/${appt.id}`)}
                               className="flex items-center gap-1 text-xs text-primary hover:underline font-medium"
@@ -154,12 +162,14 @@ const MyBookings = () => {
                               <Video className="w-3.5 h-3.5" /> Join Call
                             </button>
                           )}
-                          <button
-                            onClick={() => cancelAppointment(appt)}
-                            className="text-xs text-destructive hover:underline"
-                          >
-                            Cancel
-                          </button>
+                          {canCancel && (
+                            <button
+                              onClick={() => cancelAppointment(appt)}
+                              className="text-xs text-destructive hover:underline"
+                            >
+                              Cancel
+                            </button>
+                          )}
                         </div>
                       )}
                     </div>
