@@ -1,73 +1,61 @@
-# Welcome to your Lovable project
+# MediMatch
 
-## Project info
+AI-powered healthcare navigation for India. Symptom analysis, specialist matching, doctor directory, government health schemes, video consultations, and appointment management — all in one place.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## What it does
 
-## How can I edit this code?
+- **Symptom Analysis** – Describe symptoms in plain text, voice, or via an interactive 3D body map. Get an AI-driven preliminary assessment, urgency guidance, and specialist recommendations.
+- **Doctor Directory** – Search verified specialists, filter by free treatment, city, and specialty, view on map or list, and book appointments.
+- **Government Healthcare Schemes** – Discover Central and State government schemes you may be eligible for based on location and need.
+- **Video Consultation** – Join secure WebRTC-based video calls directly from your bookings.
+- **Appointments & Bookings** – Manage bookings as a patient, or approve, cancel, and complete appointments on the dedicated doctor dashboard.
+- **In-App Notifications** – Real-time reminders before appointments, status updates, and system alerts.
+- **Multilingual** – Supports English, Hindi, Bengali, Marathi, Punjabi, and more.
 
-There are several ways of editing your application.
+## Roles
 
-**Use Lovable**
+MediMatch uses role-based access control:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+- **Patient** – Search doctors, book appointments, track symptoms, and manage bookings.
+- **Doctor** – Review and manage appointments through the doctor dashboard.
+- **Admin** – Review and approve/reject doctor registration requests.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Tech stack
 
-**Use your preferred IDE**
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, shadcn/ui
+- **Animation & visualization:** Framer Motion, GSAP, Three.js, Recharts, Leaflet
+- **Backend / Auth / Database:** Lovable Cloud
+- **AI:** Edge functions orchestrated with Gemini
+- **Real-time:** WebRTC video calls, realtime notifications
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Getting started
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Install dependencies
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Start the dev server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Project structure
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```text
+src/
+├── pages/            # Route pages (Home, Auth, Dashboard, Results, Doctors, etc.)
+├── components/       # Reusable UI and feature components
+├── hooks/            # Custom React hooks
+├── services/         # API / function integrations
+├── i18n/              # Translation files and config
+├── lib/               # Utility helpers
+└── integrations/      # Backend client and generated types
+```
 
-**Use GitHub Codespaces**
+## Learn more
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Live preview: available via the Lovable editor
+- Production URL: published through Lovable
 
-## What technologies are used for this project?
+---
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Built with Lovable.
